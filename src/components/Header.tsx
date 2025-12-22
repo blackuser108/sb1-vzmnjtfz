@@ -32,7 +32,7 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
               />
             </div>
             <span className="text-[25px] font-extrabold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-              Hành Vi Bầy Đàn
+              Gratia Et Vita
             </span>
           </div>
 
