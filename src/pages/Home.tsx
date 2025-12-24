@@ -88,7 +88,7 @@ export default function Home({ onStartSurvey }: HomeProps) {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl font-bold mb-6 text-gray-800">
-              Hành Vi Bầy Đàn Là Gì?
+              Tính Cấp Thiết Của Nghiên Cứu
             </h2>
             <p className="text-lg text-gray-700 mb-6 leading-relaxed">
               Hành vi bầy đàn là xu hướng làm theo những gì mà đa số mọi người đang làm,
