@@ -11,7 +11,7 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: 'Xin chào! Mình là trợ lý AI. Bạn có thắc mắc gì về hành vi bầy đàn không? Mình sẵn sàng giúp bạn!',
+      content: 'Xin chào! Mình là trợ lý AI. Bạn có thắc mắc gì về lòng tốt và hành vi ủng hộ xã hội không? Hay về vai trò trung gian của ý nghĩa cuộc sống? Mình sẵn sàng giúp bạn!',
     },
   ]);
   const [input, setInput] = useState('');
