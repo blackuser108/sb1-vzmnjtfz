@@ -20,16 +20,16 @@ export default function Home({ onStartSurvey }: HomeProps) {
 
         <div className="relative h-full container mx-auto px-4 flex flex-col items-center justify-center text-center text-white">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in">
-            Hiểu Rõ Hành Vi Bầy Đàn
+            LÒNG BIẾT ƠN VÀ HÀNH VI ỦNG HỘ XÃ HỘI
           </h1>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl animate-fade-in-delay">
-            Khám phá và đánh giá mức độ ảnh hưởng của hành vi bầy đàn đối với bạn
+            Khám phá và đánh giá vai trò trung gian của ý nghĩa cuộc sống
           </p>
           <button
             onClick={onStartSurvey}
             className="font-extrabold bg-white text-blue-600 px-8 py-4 rounded-full text-lg font-semibold hover:shadow-2xl transform hover:scale-105 transition-all duration-300 animate-bounce-slow"
           >
-            BẮT ĐẦU KHẢO SÁT
+            BẮT ĐẦU NGHIÊN CỨU
           </button>
         </div>
       </section>
