@@ -20,7 +20,7 @@ export default function Home({ onStartSurvey }: HomeProps) {
 
         <div className="relative h-full container mx-auto px-4 flex flex-col items-center justify-center text-center text-white">
           <h1 className="text-5xl md:text-5xl font-bold mb-6 animate-fade-in">
-            LÒNG BIẾT ƠN VÀ HÀNH VI ỦNG HỘ XÃ HỘI
+            LÒNG BIẾT ƠN VÀ HÀNH VI ỦNG HỘ XÃ HỘ
           </h1>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl animate-fade-in-delay">
             Khám phá và đánh giá vai trò trung gian của ý nghĩa cuộc sống
