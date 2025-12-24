@@ -75,7 +75,7 @@ export default function Home({ onStartSurvey }: HomeProps) {
               <div className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center mb-4">
                 <Shield className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-orange-900">Bảo Vệ Bản Thân</h3>
+              <h3 className="text-xl font-bold mb-3 text-orange-900">Cải Thiện Bản Thân</h3>
               <p className="text-gray-700">
                 Học cách nhận biết và tránh những ảnh hưởng tiêu cực từ áp lực nhóm
               </p>
