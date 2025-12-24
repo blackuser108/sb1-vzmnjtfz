@@ -82,7 +82,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">Email</h3>
-                    <p className="text-gray-600">nguyenquangvinh112009@gmail.com</p>
+                    <p className="text-gray-600">kimnguyennhuynh2509@gmail.com</p>
                   </div>
                 </div>
 
@@ -92,8 +92,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">Điện thoại</h3>
-                    <p className="text-gray-600">024 1234 5678</p>
-                    <p className="text-gray-600">0901 234 567</p>
+                    <p className="text-gray-600">0777 500 652</p>
+                    <p className="text-gray-600">0704 089 958</p>
                   </div>
                 </div>
 
@@ -104,9 +104,9 @@ export default function Contact() {
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">Địa chỉ</h3>
                     <p className="text-gray-600">
-                      Phòng Tâm lý học Giáo dục<br />
-                      Trường Đại học Khoa học Xã hội và Nhân văn<br />
-                      Hà Nội, Việt Nam
+                      THPT chuyên Lê Quý Đôn<br />
+                      01 Vũ Văn Dũng, phường An Hải, Đà Nẵng(mới), Việt Nam<br />
+                      01 Vũ Văn Dũng, phường An Hải Tây, Quận Sơn Trà, Đà Nẵng(cũ), Việt Nam
                     </p>
                   </div>
                 </div>
