@@ -1,4 +1,4 @@
-import { Menu, X, Mail, House, Info, Star, Headset } from 'lucide-react';
+import { Menu, X, Mail, House, Info, Star, Headset, Book, Speaker } from 'lucide-react';
 import { useState } from 'react';
 
 interface HeaderProps {
@@ -12,8 +12,10 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: House },
     { id: 'about', label: 'Giới thiệu', icon: Info },
+    { id: 'book', label: 'Cẩm nang', icon: Book}
+    { id: 'news', label: 'Bài báo khoa học', icon: Speaker}
     { id: 'reviews', label: 'Đánh giá', icon: Star },
-    { id: 'contact', label: 'Liên hệ', icon: Headset },
+    { id: 'contact', label: 'Liên hệ', icon: Headset }
   ];
 
   return (
