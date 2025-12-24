@@ -7,10 +7,10 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 py-12 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">
             Liên Hệ
           </h1>
           <p className="text-xl text-gray-600">
@@ -27,7 +27,7 @@ export default function Contact() {
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
                   placeholder="Nhập họ tên của bạn"
                 />
               </div>
@@ -37,7 +37,7 @@ export default function Contact() {
                 <input
                   type="email"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
                   placeholder="Nhập email của bạn"
                 />
               </div>
@@ -46,7 +46,7 @@ export default function Contact() {
                 <label className="block text-gray-700 font-medium mb-2">Số điện thoại</label>
                 <input
                   type="tel"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
                   placeholder="Nhập số điện thoại (không bắt buộc)"
                 />
               </div>
@@ -56,14 +56,14 @@ export default function Contact() {
                 <textarea
                   required
                   rows={5}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
                   placeholder="Bạn muốn chia sẻ điều gì với chúng mình?"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all"
               >
                 <Send className="w-5 h-5" />
                 Gửi Tin Nhắn
@@ -77,8 +77,8 @@ export default function Contact() {
 
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-6 h-6 text-blue-500" />
+                  <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-6 h-6 text-amber-700" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">Email</h3>
@@ -87,8 +87,8 @@ export default function Contact() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-6 h-6 text-teal-500" />
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-6 h-6 text-orange-700" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">Điện thoại</h3>
@@ -98,8 +98,8 @@ export default function Contact() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-purple-500" />
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-6 h-6 text-green-700" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">Địa chỉ</h3>
@@ -122,7 +122,7 @@ export default function Contact() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl shadow-xl p-8 text-white">
+            <div className="bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl shadow-xl p-8 text-white">
               <h3 className="text-xl font-bold mb-3">Cần Hỗ Trợ Khẩn Cấp?</h3>
               <p className="mb-4">
                 Nếu bạn đang gặp khó khăn nghiêm trọng về tâm lý, hãy liên hệ ngay:

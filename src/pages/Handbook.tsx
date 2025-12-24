@@ -18,7 +18,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
       <div className="container mx-auto px-4 py-8">
         <button
           onClick={() => onNavigate('home')}
@@ -30,7 +30,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
 
         <div className="max-w-5xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-teal-500 p-8 text-white">
+            <div className="bg-gradient-to-r from-amber-600 to-orange-600 p-8 text-white">
               <h1 className="text-4xl font-bold mb-4">Cẩm Nang Hành Vi Bầy Đàn</h1>
               <p className="text-lg opacity-90">
                 Hướng dẫn chi tiết giúp bạn hiểu rõ và quản lý hành vi bầy đàn trong cuộc sống hàng ngày
@@ -39,20 +39,20 @@ export default function Handbook({ onNavigate }: HandbookProps) {
 
             <div className="p-8">
               <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
-                  <h3 className="font-bold text-blue-900 mb-2">📚 Nội Dung</h3>
+                <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-xl">
+                  <h3 className="font-bold text-amber-900 mb-2">📚 Nội Dung</h3>
                   <p className="text-sm text-gray-700">
                     10 chương chi tiết với các ví dụ thực tế
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-teal-50 to-teal-100 p-6 rounded-xl">
-                  <h3 className="font-bold text-teal-900 mb-2">👥 Đối Tượng</h3>
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl">
+                  <h3 className="font-bold text-orange-900 mb-2">👥 Đối Tượng</h3>
                   <p className="text-sm text-gray-700">
                     Dành cho học sinh, phụ huynh và giáo viên
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-xl">
-                  <h3 className="font-bold text-emerald-900 mb-2">⏱️ Thời Gian</h3>
+                <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl">
+                  <h3 className="font-bold text-green-900 mb-2">⏱️ Thời Gian</h3>
                   <p className="text-sm text-gray-700">
                     Đọc trong khoảng 30-45 phút
                   </p>
@@ -78,7 +78,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={handleDownload}
-                  className="flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-bold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all"
+                  className="flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all"
                 >
                   <Download className="w-5 h-5" />
                   Tải Xuống Tài Liệu
@@ -105,7 +105,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
                     'Tư vấn chuyên gia'
                   ].map((item, index) => (
                     <div key={index} className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
                         {index + 1}
                       </div>
                       <p className="text-gray-700 pt-0.5">{item}</p>
