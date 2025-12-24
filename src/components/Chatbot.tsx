@@ -8,7 +8,7 @@ const sendMessage = async () => {
 
   try {
     const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-    if (!apiKey) throw new Error('Groq API key not found');
+    if (!apiKey) throw new Error('Groq API key not foun');
 
     const response = await fetch(
       'https://api.groq.com/openai/v1/chat/completions',
