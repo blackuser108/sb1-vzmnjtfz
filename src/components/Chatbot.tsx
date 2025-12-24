@@ -104,7 +104,7 @@ export default function Chatbot() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-teal-500 text-white p-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 z-50"
+        className="fixed bottom-6 right-6 bg-gradient-to-r from-amber-600 to-orange-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 z-50"
       >
         <BotMessageSquare  className="w-6 h-6" />
       </button>
@@ -117,7 +117,7 @@ export default function Chatbot() {
         isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'
       }`}
     >
-      <div className="bg-gradient-to-r from-blue-500 to-teal-500 text-white p-4 rounded-t-2xl flex items-center justify-between">
+      <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white p-4 rounded-t-2xl flex items-center justify-between">
         <div className="flex items-center gap-2">
           <BotMessageSquare className="w-5 h-5" />
           <span className="font-semibold">Trợ lý AI</span>
@@ -149,7 +149,7 @@ export default function Chatbot() {
                 <div
                   className={`max-w-[80%] p-3 rounded-2xl ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-br-none'
+                      ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-br-none'
                       : 'bg-gray-100 text-gray-800 rounded-bl-none'
                   }`}
                 >
@@ -192,13 +192,13 @@ export default function Chatbot() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Nhập câu hỏi của bạn..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-600"
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="bg-gradient-to-r from-blue-500 to-teal-500 text-white p-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="bg-gradient-to-r from-amber-600 to-orange-600 text-white p-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 <Send className="w-5 h-5" />
               </button>
