@@ -12,8 +12,7 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: House },
     { id: 'about', label: 'Giới thiệu', icon: Info },
-    { id: 'book', label: 'Cẩm nang', icon: Book}
-    { id: 'news', label: 'Bài báo khoa học', icon: Speaker}
+    { id: 'handbook', label: 'Cẩm nang', icon: Book },
     { id: 'reviews', label: 'Đánh giá', icon: Star },
     { id: 'contact', label: 'Liên hệ', icon: Headset }
   ];

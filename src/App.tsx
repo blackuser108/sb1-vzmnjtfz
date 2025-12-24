@@ -7,12 +7,13 @@ import Result from './pages/Result';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Reviews from './pages/Reviews';
+import Handbook from './pages/Handbook';
 import SituationAI from "./components/SituationAI";
 
-type Page = 'home' | 'survey' | 'situation' | 'result' | 'about' | 'contact' | 'reviews';
+type Page = 'home' | 'survey' | 'situation' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'survey' | 'situation' | 'result'>('home');
+  const [currentPage, setCurrentPage] = useState<Page>('home');
   const [surveyId, setSurveyId] = useState<string>('');
 
   const handleStartSurvey = () => {
@@ -61,6 +62,7 @@ function App() {
         <Result surveyId={surveyId} onBackHome={() => setCurrentPage('home')} />
       )}
       {currentPage === 'about' && <About />}
+      {currentPage === 'handbook' && <Handbook onNavigate={handleNavigate} />}
       {currentPage === 'contact' && <Contact />}
       {currentPage === 'reviews' && <Reviews />}
 
