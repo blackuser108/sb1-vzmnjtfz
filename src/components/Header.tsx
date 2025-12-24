@@ -32,7 +32,7 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
                 className="w-20 h-20 rounded-full object-cover"
               />
             </div>
-            <span className="text-[25px] font-extrabold bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">
+            <span className="text-[25px] font-extrabold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
               Gratia Et Vita
             </span>
           </div>
@@ -44,8 +44,8 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
                 onClick={() => onNavigate(item.id)}
                 className={`flex items-center gap-2 font-medium transition-all ${
                   currentPage === item.id
-                    ? 'text-lg text-amber-700 border-b-2 border-amber-700'
-                    : 'text-lg text-gray-600 hover:text-amber-700'
+                    ? 'text-lg text-blue-600 border-b-2 border-blue-600'
+                    : 'text-lg text-gray-600 hover:text-blue-600'
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -72,7 +72,7 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
                   setIsMenuOpen(false);
                 }}
                 className={`text-left font-medium transition-all ${
-                  currentPage === item.id ? 'text-amber-700' : 'text-gray-600'
+                  currentPage === item.id ? 'text-blue-600' : 'text-gray-600'
                 }`}
               >
                 {item.label}

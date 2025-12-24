@@ -2,10 +2,10 @@ import { Brain, Heart, Users, Target } from 'lucide-react';
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-12 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
             Giới Thiệu
           </h1>
           <p className="text-xl text-gray-600">
@@ -28,8 +28,8 @@ export default function About() {
 
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-              <Brain className="w-8 h-8 text-amber-700" />
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+              <Brain className="w-8 h-8 text-blue-500" />
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-3">Tầm Quan Trọng</h3>
             <p className="text-gray-700 leading-relaxed">
@@ -39,8 +39,8 @@ export default function About() {
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
-              <Target className="w-8 h-8 text-orange-700" />
+            <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+              <Target className="w-8 h-8 text-teal-500" />
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-3">Mục Tiêu</h3>
             <p className="text-gray-700 leading-relaxed">
@@ -50,8 +50,8 @@ export default function About() {
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <Users className="w-8 h-8 text-green-700" />
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+              <Users className="w-8 h-8 text-purple-500" />
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-3">Đối Tượng</h3>
             <p className="text-gray-700 leading-relaxed">
@@ -61,8 +61,8 @@ export default function About() {
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <Heart className="w-8 h-8 text-red-700" />
+            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+              <Heart className="w-8 h-8 text-orange-500" />
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-3">Giá Trị</h3>
             <p className="text-gray-700 leading-relaxed">
