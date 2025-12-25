@@ -13,7 +13,7 @@ export interface SurveyResponse {
   id: string;
   survey_id: string;
   question_id: string;
-  question_type: 'likert' | 'multiple_choice' | 'open_ended';
+  question_type: 'likert' | 'multiple_choice' | 'open_ended'
   answer: any;
   created_at: string;
 }
