@@ -92,6 +92,7 @@ Khi trả lời:
 - Dẫn dắt bằng ví dụ gần gũi
 - Có thể thêm icon dễ thương
 - Kết thúc bằng một câu hỏi mở
+- Phải trả lời vào đúng trọng tâm câu hỏi mà người hỏi đặt ra
 
 ${knowledgeContext ? `Hãy sử dụng thông tin sau để cải thiện câu trả lời của bạn:${knowledgeContext}` : ''}
                 `,
