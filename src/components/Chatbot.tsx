@@ -41,6 +41,33 @@ export default function Chatbot() {
       const apiKey = import.meta.env.VITE_GROQ_API_KEY;
       if (!apiKey) throw new Error('API key not found');
 
+      // Search relevant knowledge from database
+      let knowledgeContext = '';
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const searchResponse = await fetch(
+          `${supabaseUrl}/functions/v1/search-knowledge`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ query: userMessage }),
+          }
+        );
+
+        const searchData = await searchResponse.json();
+        if (searchData.data && searchData.data.length > 0) {
+          knowledgeContext = '\n\nTài liệu tham khảo từ cơ sở dữ liệu:\n';
+          searchData.data.forEach((item: any) => {
+            knowledgeContext += `\nCâu hỏi: ${item.question}\nTrả lời: ${item.answer}\n`;
+          });
+        }
+      } catch (searchErr) {
+        console.warn('Knowledge search failed:', searchErr);
+      }
+
       const response = await fetch(
         'https://api.groq.com/openai/v1/chat/completions',
         {
@@ -55,7 +82,7 @@ export default function Chatbot() {
               {
                 role: 'system',
                 content: `
-Bạn là trợ lý AI chuyên về tâm lí lòng tốt và hành vi ủng hộ xã hội, trong đó quan trọng nhất bạn hiểu rõ về vai trò trung gian của ý nghĩa cuộc sống. 
+Bạn là trợ lý AI chuyên về tâm lí lòng tốt và hành vi ủng hộ xã hội, trong đó quan trọng nhất bạn hiểu rõ về vai trò trung gian của ý nghĩa cuộc sống.
 Hãy trả lời bằng tiếng Việt một cách thân thiện, dễ hiểu và hữu ích cho học sinh.
 
 Khi trả lời:
@@ -65,6 +92,8 @@ Khi trả lời:
 - Dẫn dắt bằng ví dụ gần gũi
 - Có thể thêm icon dễ thương
 - Kết thúc bằng một câu hỏi mở
+
+${knowledgeContext ? `Hãy sử dụng thông tin sau để cải thiện câu trả lời của bạn:${knowledgeContext}` : ''}
                 `,
               },
               {
