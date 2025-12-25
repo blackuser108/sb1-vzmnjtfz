@@ -146,9 +146,11 @@ Khi trả lời:
                       : 'bg-gray-100 text-gray-800'
                   }`}
                 >
-                  <ReactMarkdown className="prose max-w-none text-sm">
-                    {m.content}
-                  </ReactMarkdown>
+                  <div className="prose max-w-none text-sm">
+                    <ReactMarkdown>
+                      {m.content}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               </div>
             ))}
