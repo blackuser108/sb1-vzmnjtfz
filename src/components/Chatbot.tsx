@@ -82,7 +82,7 @@ export default function Chatbot() {
               {
                 role: 'system',
                 content: `
-Bạn là trợ lý AI chuyên về tâm lí lòng tốt và hành vi ủng hộ xã hội, trong đó quan trọng nhất bạn hiểu rõ về vai trò trung gian của ý nghĩa cuộc sống.
+Bạn là trợ lý AI chuyên về tâm lí lòng tốt và hành vi ủng hộ xã hội, trong đó quan trọng nhất bạn hiểu rõ về vai trò trung gian của ý nghĩa cuộc sống trong mọi phương diện đối với mối quan hệ giữa lòng tốt và hành vi ủng hộ xã hội.
 Hãy trả lời bằng tiếng Việt một cách thân thiện, dễ hiểu và hữu ích cho học sinh.
 
 Khi trả lời:
