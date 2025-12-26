@@ -10,9 +10,10 @@ import Contact from './pages/Contact';
 import Reviews from './pages/Reviews';
 import Handbook from './pages/Handbook';
 import Auth from './pages/Auth';
+import Dashboard from './pages/Dashboard';
 import SituationAI from "./components/SituationAI";
 
-type Page = 'home' | 'survey' | 'situation' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook' | 'auth';
+type Page = 'home' | 'survey' | 'situation' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook' | 'auth' | 'dashboard';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -74,6 +75,7 @@ function App() {
         {currentPage === 'handbook' && <Handbook onNavigate={handleNavigate} />}
         {currentPage === 'contact' && <Contact />}
         {currentPage === 'reviews' && <Reviews />}
+        {currentPage === 'dashboard' && <Dashboard />}
 
         <Chatbot />
       </div>

@@ -1,4 +1,4 @@
-import { Menu, X, Mail, House, Info, Star, Headset, Book, Speaker, LogOut, User as UserIcon } from 'lucide-react';
+import { Menu, X, Mail, House, Info, Star, Headset, Book, Speaker, LogOut, User as UserIcon, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -85,6 +85,16 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
                       <p className="text-sm font-medium text-gray-800 truncate">{user.email}</p>
                     </div>
                     <button
+                      onClick={() => {
+                        onNavigate('dashboard');
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-left text-blue-600 hover:bg-blue-50 transition-colors"
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      Dashboard
+                    </button>
+                    <button
                       onClick={handleSignOut}
                       className="w-full flex items-center gap-2 px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
                     >
@@ -137,6 +147,16 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
                     <p className="text-sm text-gray-500">Đăng nhập bằng</p>
                     <p className="text-sm font-medium text-gray-800 truncate">{user.email}</p>
                   </div>
+                  <button
+                    onClick={() => {
+                      onNavigate('dashboard');
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-2 text-left text-blue-600 hover:bg-blue-50 transition-colors rounded mb-2"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    Dashboard
+                  </button>
                   <button
                     onClick={() => {
                       handleSignOut();
