@@ -1,13 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, X, Minimize2, Maximize2, BotMessageSquare } from 'lucide-react';
+import { Send, X, Minimize2, Maximize2, BotMessageSquare, Trash2 } from 'lucide-react';
 import ReactMarkdown from "react-markdown";
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
+const generateSessionId = () => {
+  return `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
 export default function Chatbot() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -19,6 +26,7 @@ export default function Chatbot() {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [sessionId] = useState(generateSessionId());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -29,6 +37,32 @@ export default function Chatbot() {
     scrollToBottom();
   }, [messages]);
 
+  const saveChatMessage = async (message: string, role: 'user' | 'assistant') => {
+    if (!user) return;
+
+    try {
+      await supabase.from('chat_history').insert({
+        user_id: user.id,
+        session_id: sessionId,
+        message,
+        role,
+        title: 'Cuộc trò chuyện',
+      });
+    } catch (error) {
+      console.error('Error saving chat:', error);
+    }
+  };
+
+  const clearChat = () => {
+    setMessages([
+      {
+        role: 'assistant',
+        content:
+          'Xin chào! Mình là trợ lý AI. Bạn có thắc mắc gì về lòng tốt và hành vi ủng hộ xã hội không? Hay về vai trò trung gian của ý nghĩa cuộc sống? Mình sẵn sàng giúp bạn!',
+      },
+    ]);
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -36,6 +70,8 @@ export default function Chatbot() {
     setInput('');
     setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
+
+    await saveChatMessage(userMessage, 'user');
 
     try {
       const apiKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -120,6 +156,7 @@ ${knowledgeContext ? `Hãy sử dụng thông tin sau để cải thiện câu t
         'Xin lỗi, mình chưa thể trả lời câu hỏi này.';
 
       setMessages((prev) => [...prev, { role: 'assistant', content: aiResponse }]);
+      await saveChatMessage(aiResponse, 'assistant');
     } catch (error: any) {
       console.error('Chat error:', error);
       setMessages((prev) => [
@@ -156,6 +193,15 @@ ${knowledgeContext ? `Hãy sử dụng thông tin sau để cải thiện câu t
           <BotMessageSquare className="w-5 h-5" /> Trợ lý AI
         </span>
         <div className="flex gap-2">
+          {!isMinimized && user && (
+            <button
+              onClick={clearChat}
+              title="Xóa cuộc trò chuyện"
+              className="hover:opacity-80 transition"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          )}
           <button onClick={() => setIsMinimized(!isMinimized)}>
             {isMinimized ? <Maximize2 /> : <Minimize2 />}
           </button>

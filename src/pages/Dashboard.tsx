@@ -9,7 +9,9 @@ import {
   Award,
   BarChart3,
   Clock,
-  Target
+  Target,
+  MessageSquare,
+  Trash2
 } from 'lucide-react';
 
 interface SurveyData {
@@ -26,15 +28,32 @@ interface SurveyData {
   };
 }
 
+interface ChatSession {
+  session_id: string;
+  message_count: number;
+  last_message_at: string;
+  first_message_at: string;
+}
+
+interface ChatMessage {
+  id: string;
+  message: string;
+  role: 'user' | 'assistant';
+  created_at: string;
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [surveys, setSurveys] = useState<SurveyData[]>([]);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [selectedSession, setSelectedSession] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalSurveys: 0,
     averageScore: 0,
     latestRiskLevel: '',
-    improvementRate: 0
+    improvementRate: 0,
+    totalChats: 0
   });
 
   useEffect(() => {
@@ -91,17 +110,78 @@ export default function Dashboard() {
         improvementRate = ((firstScore - lastScore) / firstScore) * 100;
       }
 
+      const { data: chatData, error: chatError } = await supabase
+        .from('chat_history')
+        .select('session_id, created_at')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (chatError) throw chatError;
+
+      const sessionMap = new Map<string, { messages: number; first: string; last: string }>();
+      chatData?.forEach((chat: any) => {
+        if (!sessionMap.has(chat.session_id)) {
+          sessionMap.set(chat.session_id, { messages: 0, first: chat.created_at, last: chat.created_at });
+        }
+        const session = sessionMap.get(chat.session_id)!;
+        session.messages++;
+        session.last = chat.created_at;
+      });
+
+      const sessions: ChatSession[] = Array.from(sessionMap.entries()).map(([id, data]) => ({
+        session_id: id,
+        message_count: data.messages,
+        last_message_at: data.last,
+        first_message_at: data.first
+      }));
+
+      setChatSessions(sessions);
+
       setStats({
         totalSurveys,
         averageScore: Math.round(averageScore),
         latestRiskLevel,
-        improvementRate: Math.round(improvementRate)
+        improvementRate: Math.round(improvementRate),
+        totalChats: sessions.length
       });
 
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadChatSession = async (sessionId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_history')
+        .select('id, message, role, created_at')
+        .eq('session_id', sessionId)
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setSelectedSession(data || []);
+    } catch (error) {
+      console.error('Error loading chat session:', error);
+    }
+  };
+
+  const deleteChat = async (sessionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('chat_history')
+        .delete()
+        .eq('session_id', sessionId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+      setChatSessions(chatSessions.filter(s => s.session_id !== sessionId));
+      setSelectedSession([]);
+      setStats(prev => ({ ...prev, totalChats: prev.totalChats - 1 }));
+    } catch (error) {
+      console.error('Error deleting chat:', error);
     }
   };
 
@@ -182,6 +262,16 @@ export default function Dashboard() {
               {stats.improvementRate > 0 ? '+' : ''}{stats.improvementRate}%
             </p>
           </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
+                <MessageSquare className="w-6 h-6 text-pink-500" />
+              </div>
+            </div>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Lịch sử trò chuyện</h3>
+            <p className="text-3xl font-bold text-gray-800">{stats.totalChats}</p>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
@@ -259,7 +349,7 @@ export default function Dashboard() {
         </div>
 
         {surveys.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Biểu Đồ Tiến Trình</h2>
             <div className="relative h-64">
               <div className="absolute inset-0 flex items-end justify-around gap-2">
@@ -290,6 +380,95 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-600">Điểm thấp nhất: 0</p>
               <p className="text-sm text-gray-600">Điểm cao nhất: 60</p>
+            </div>
+          </div>
+        )}
+
+        {chatSessions.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <MessageSquare className="w-6 h-6 text-pink-500" />
+              Lịch Sử Trò Chuyện
+            </h2>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                  {chatSessions.map((session) => (
+                    <button
+                      key={session.session_id}
+                      onClick={() => loadChatSession(session.session_id)}
+                      className={`w-full text-left p-3 rounded-lg transition-all ${
+                        selectedSession.length > 0 && selectedSession.some(m => m.id)
+                          ? 'bg-blue-50 border-2 border-blue-500'
+                          : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-1">
+                        <p className="text-sm font-semibold text-gray-800">Cuộc trò chuyện</p>
+                        <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded">
+                          {session.message_count} tin
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        {new Date(session.last_message_at).toLocaleDateString('vi-VN')}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lg:col-span-2">
+                {selectedSession.length > 0 ? (
+                  <div className="bg-gray-50 rounded-lg p-4 h-[500px] flex flex-col">
+                    <div className="flex-1 overflow-y-auto space-y-3 mb-4">
+                      {selectedSession.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-xs p-3 rounded-lg ${
+                              msg.role === 'user'
+                                ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white'
+                                : 'bg-white border border-gray-200 text-gray-800'
+                            }`}
+                          >
+                            <p className="text-sm break-words">{msg.message}</p>
+                            <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
+                              {new Date(msg.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {selectedSession.length > 0 && (
+                      <button
+                        onClick={() => {
+                          const activeSession = chatSessions.find(session =>
+                            selectedSession.some(msg => msg.id)
+                          );
+                          if (activeSession) {
+                            deleteChat(activeSession.session_id);
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors text-sm"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Xóa cuộc trò chuyện này
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-8 h-[500px] flex items-center justify-center">
+                    <div className="text-center">
+                      <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                      <p className="text-gray-500">Chọn một cuộc trò chuyện để xem</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
