@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Star, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { Review } from '../types';
 
 export default function Reviews() {
+  const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -36,8 +38,14 @@ export default function Reviews() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user) {
+      alert('Bạn cần đăng nhập để gửi đánh giá!');
+      return;
+    }
+
     try {
       const { error } = await supabase.from('reviews').insert({
+        user_id: user.id,
         name: formData.name,
         rating: formData.rating,
         comment: formData.comment,

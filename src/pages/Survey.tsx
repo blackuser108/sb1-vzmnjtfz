@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { surveyQuestions } from '../data/questions';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { Survey as SurveyType } from '../types';
 
 interface SurveyProps {
@@ -10,6 +11,7 @@ interface SurveyProps {
 }
 
 export default function Survey({ onComplete, onBack }: SurveyProps) {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [userInfo, setUserInfo] = useState({
     name: '',
@@ -50,6 +52,7 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
       const { data: survey, error: surveyError } = await supabase
         .from('surveys')
         .insert({
+          user_id: user?.id,
           user_name: userInfo.name,
           user_age: parseInt(userInfo.age),
           user_grade: userInfo.grade,

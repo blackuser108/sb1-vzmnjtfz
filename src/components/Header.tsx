@@ -1,5 +1,6 @@
-import { Menu, X, Mail, House, Info, Star, Headset, Book, Speaker } from 'lucide-react';
+import { Menu, X, Mail, House, Info, Star, Headset, Book, Speaker, LogOut, User as UserIcon } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface HeaderProps {
   currentPage: string;
@@ -8,6 +9,8 @@ interface HeaderProps {
 
 export default function Header({ currentPage, onNavigate }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { user, signOut } = useAuth();
 
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: House },
@@ -16,6 +19,16 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
     { id: 'reviews', label: 'Đánh giá', icon: Star },
     { id: 'contact', label: 'Liên hệ', icon: Headset }
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    setShowUserMenu(false);
+    onNavigate('home');
+  };
+
+  const getUserName = () => {
+    return user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
+  };
 
   return (
     <header className="bg-white/95 backdrop-blur-sm shadow-md sticky top-0 z-40">
@@ -54,6 +67,44 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
             ))}
           </nav>
 
+          <div className="hidden md:flex items-center gap-4">
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:shadow-lg transition-all"
+                >
+                  <UserIcon className="w-5 h-5" />
+                  <span>{getUserName()}</span>
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                    <div className="px-4 py-2 border-b border-gray-200">
+                      <p className="text-sm text-gray-500">Đăng nhập bằng</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{user.email}</p>
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => onNavigate('auth')}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:shadow-lg transition-all"
+              >
+                <UserIcon className="w-5 h-5" />
+                Đăng nhập
+              </button>
+            )}
+          </div>
+
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden text-gray-600"
@@ -78,6 +129,38 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
                 {item.label}
               </button>
             ))}
+
+            <div className="border-t border-gray-200 pt-4">
+              {user ? (
+                <div>
+                  <div className="mb-2 px-2">
+                    <p className="text-sm text-gray-500">Đăng nhập bằng</p>
+                    <p className="text-sm font-medium text-gray-800 truncate">{user.email}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-2 text-left text-red-600 hover:bg-red-50 transition-colors rounded"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Đăng xuất
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    onNavigate('auth');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:shadow-lg transition-all"
+                >
+                  <UserIcon className="w-5 h-5" />
+                  Đăng nhập
+                </button>
+              )}
+            </div>
           </nav>
         )}
       </div>
