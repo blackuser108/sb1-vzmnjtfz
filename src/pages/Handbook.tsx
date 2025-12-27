@@ -10,7 +10,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
 
   const googleDriveFileId = '112ruhDBStkxM9E-gzedYTY6ZzOsT2eyZ';
   const pdfFileName = 'Cam-nang-hanh-vi-bay-dan.pdf';
-  const previewUrl = `https://drive.google.com/file/d/${googleDriveFileId}/preview`;
+  const previewUrl = `https://drive.google.com/file/d/${googleDriveFileId}/view`;
   const downloadUrl = `https://drive.google.com/uc?export=download&id=${googleDriveFileId}`;
 
   const handleDownload = async () => {
