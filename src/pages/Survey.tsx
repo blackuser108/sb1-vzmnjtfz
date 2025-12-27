@@ -1,43 +1,108 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
-import { surveyQuestions } from '../data/questions';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Survey as SurveyType } from '../types';
 
 interface SurveyProps {
-  onComplete: (surveyId: string) => void;
+  onComplete: (responseId: string) => void;
   onBack: () => void;
+}
+
+interface Question {
+  id: string;
+  section_code: string;
+  question_text: string;
+  question_order: number;
+}
+
+interface Section {
+  code: string;
+  name: string;
+  description: string;
+  scale_min: number;
+  scale_max: number;
 }
 
 export default function Survey({ onComplete, onBack }: SurveyProps) {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
-  const [userInfo, setUserInfo] = useState({
-    name: '',
-    age: '',
-    grade: '',
-    school: '',
-  });
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [sections, setSections] = useState<Section[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
 
-  const handleUserInfoSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentStep(1);
+  useEffect(() => {
+    loadSurveyData();
+  }, []);
+
+  const loadSurveyData = async () => {
+    try {
+      const [sectionsResult, questionsResult] = await Promise.all([
+        supabase
+          .from('survey_sections')
+          .select('*')
+          .order('code'),
+        supabase
+          .from('survey_questions')
+          .select('*')
+          .eq('is_active', true)
+          .order('section_code, question_order')
+      ]);
+
+      if (sectionsResult.data) {
+        setSections(sectionsResult.data);
+      }
+      if (questionsResult.data) {
+        setQuestions(questionsResult.data);
+      }
+    } catch (error) {
+      console.error('Error loading survey data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAnswer = (questionId: string, answer: any) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  const handleAnswer = (questionId: string, value: number) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
-  const currentQuestion = surveyQuestions[currentStep - 1];
-  const isLastQuestion = currentStep === surveyQuestions.length + 1;
+  const calculateScores = () => {
+    const xQuestions = questions.filter(q => q.section_code === 'X');
+    const yQuestions = questions.filter(q => q.section_code === 'Y');
+    const mQuestions = questions.filter(q => q.section_code === 'M');
 
-  const handleNext = async () => {
-    if (isLastQuestion) {
-      await submitSurvey();
+    const xScore = xQuestions.reduce((sum, q) => sum + (answers[q.id] || 0), 0) / xQuestions.length;
+    const yScore = yQuestions.reduce((sum, q) => sum + (answers[q.id] || 0), 0) / yQuestions.length;
+    const mScore = mQuestions.reduce((sum, q) => sum + (answers[q.id] || 0), 0) / mQuestions.length;
+
+    return {
+      x_score: Number(xScore.toFixed(2)),
+      y_score: Number(yScore.toFixed(2)),
+      m_score: Number(mScore.toFixed(2))
+    };
+  };
+
+  const getLevel = (score: number, sectionCode: string): string => {
+    if (sectionCode === 'Y') {
+      if (score >= 4.21) return 'Rất cao';
+      if (score >= 3.41) return 'Cao';
+      if (score >= 2.61) return 'Trung bình';
+      if (score >= 1.81) return 'Thấp';
+      return 'Rất thấp';
     } else {
+      if (score >= 5.81) return 'Rất cao';
+      if (score >= 4.61) return 'Cao';
+      if (score >= 3.41) return 'Trung bình';
+      if (score >= 2.21) return 'Thấp';
+      return 'Rất thấp';
+    }
+  };
+
+  const handleNext = () => {
+    if (currentStep < questions.length) {
       setCurrentStep(currentStep + 1);
+    } else {
+      submitSurvey();
     }
   };
 
@@ -47,112 +112,51 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
     }
   };
 
-  const submitSurvey = async (mode: 'situation' | 'result' = 'situation') => {
+  const submitSurvey = async () => {
     try {
-      const { data: survey, error: surveyError } = await supabase
-        .from('surveys')
+      const scores = calculateScores();
+      const xLevel = getLevel(scores.x_score, 'X');
+      const yLevel = getLevel(scores.y_score, 'Y');
+      const mLevel = getLevel(scores.m_score, 'M');
+
+      const { data: response, error } = await supabase
+        .from('survey_responses')
         .insert({
           user_id: user?.id,
-          user_name: userInfo.name,
-          user_age: parseInt(userInfo.age),
-          user_grade: userInfo.grade,
-          user_school: userInfo.school,
-          status: 'completed',
-          completed_at: new Date().toISOString(),
+          x_score: scores.x_score,
+          y_score: scores.y_score,
+          m_score: scores.m_score,
+          x_level: xLevel,
+          y_level: yLevel,
+          m_level: mLevel,
+          answers: answers
         })
         .select()
         .single();
 
-      if (surveyError || !survey) throw surveyError;
+      if (error) throw error;
 
-      const responses = Object.entries(answers).map(([questionId, answer]) => {
-        const question = surveyQuestions.find((q) => q.id === questionId);
-        return {
-          survey_id: survey.id,
-          question_id: questionId,
-          question_type: question?.type || 'likert',
-          answer: { value: answer },
-        };
-      });
-
-      const { error: responsesError } = await supabase
-        .from('survey_responses')
-        .insert(responses);
-
-      if (responsesError) throw responsesError;
-
-      const score = calculateScore();
-      const riskLevel = getRiskLevel(score);
-      const recommendations = getRecommendations(riskLevel);
-
-      const { error: resultError } = await supabase.from('survey_results').insert({
-        survey_id: survey.id,
-        total_score: score,
-        risk_level: riskLevel,
-        analysis: { score, answers },
-        recommendations,
-      });
-
-      if (resultError) throw resultError;
-
-      onComplete(survey.id);
+      if (response) {
+        onComplete(response.id);
+      }
     } catch (error) {
       console.error('Error submitting survey:', error);
       alert('Có lỗi xảy ra khi gửi khảo sát. Vui lòng thử lại!');
     }
   };
 
-  const calculateScore = () => {
-    let score = 0;
-    surveyQuestions.forEach((q) => {
-      const answer = answers[q.id];
-      if (q.type === 'likert' && typeof answer === 'number') {
-        score += answer;
-      } else if (q.type === 'multiple_choice' && typeof answer === 'number') {
-        score += 5 - answer;
-      }
-    });
-    return score;
-  };
-
-  const getRiskLevel = (score: number): 'low' | 'medium' | 'high' | 'critical' => {
-    if (score <= 15) return 'low';
-    if (score <= 30) return 'medium';
-    if (score <= 45) return 'high';
-    return 'critical';
-  };
-
-  const getRecommendations = (riskLevel: string): string[] => {
-    const recommendations: Record<string, string[]> = {
-      low: [
-        'Bạn có khả năng tư duy độc lập tốt! Hãy tiếp tục phát huy.',
-        'Chia sẻ kinh nghiệm của bạn với bạn bè để giúp họ tự tin hơn.',
-      ],
-      medium: [
-        'Bạn cần chú ý đến việc đưa ra quyết định độc lập nhiều hơn.',
-        'Thử thách bản thân bằng cách nói "không" khi không đồng ý với nhóm.',
-        'Tìm hiểu thêm về giá trị cá nhân của bạn.',
-      ],
-      high: [
-        'Bạn đang bị ảnh hưởng nhiều bởi áp lực nhóm.',
-        'Hãy dành thời gian suy nghĩ về những gì thực sự quan trọng với bạn.',
-        'Tìm kiếm sự hỗ trợ từ gia đình hoặc thầy cô.',
-        'Luyện tập kỹ năng tự khẳng định bản thân.',
-      ],
-      critical: [
-        'Bạn đang ở mức độ rủi ro cao về hành vi bầy đàn.',
-        'Cần trao đổi với người lớn đáng tin cậy ngay lập tức.',
-        'Tham gia các hoạt động phát triển kỹ năng sống.',
-        'Xem xét tham khảo ý kiến chuyên gia tâm lý.',
-      ],
-    };
-    return recommendations[riskLevel] || [];
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 flex items-center justify-center">
+        <div className="text-xl text-gray-600">Đang tải khảo sát...</div>
+      </div>
+    );
+  }
 
   if (currentStep === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
@@ -163,73 +167,41 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
 
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-              Thông Tin Cá Nhân
+              Khảo Sát Sức Khỏe Tinh Thần
             </h2>
 
-            <form onSubmit={handleUserInfoSubmit} className="space-y-6">
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Họ và tên</label>
-                <input
-                  type="text"
-                  required
-                  value={userInfo.name}
-                  onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Nhập họ tên của bạn"
-                />
-              </div>
+            <div className="space-y-6 mb-8">
+              {sections.map((section) => (
+                <div key={section.code} className="border-l-4 border-blue-500 pl-4">
+                  <h3 className="text-xl font-bold text-gray-800">{section.name}</h3>
+                  <p className="text-gray-600">{section.description}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Thang đo: {section.scale_min} - {section.scale_max}
+                  </p>
+                </div>
+              ))}
+            </div>
 
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Tuổi</label>
-                <input
-                  type="number"
-                  required
-                  min="10"
-                  max="25"
-                  value={userInfo.age}
-                  onChange={(e) => setUserInfo({ ...userInfo, age: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Nhập tuổi của bạn"
-                />
-              </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-gray-700">
+                <strong>Lưu ý:</strong> Khảo sát gồm {questions.length} câu hỏi.
+                Vui lòng trả lời trung thực để có kết quả chính xác nhất.
+              </p>
+            </div>
 
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Lớp</label>
-                <input
-                  type="text"
-                  required
-                  value={userInfo.grade}
-                  onChange={(e) => setUserInfo({ ...userInfo, grade: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ví dụ: 10A1, 11B2, ..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Trường</label>
-                <input
-                  type="text"
-                  value={userInfo.school}
-                  onChange={(e) => setUserInfo({ ...userInfo, school: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Tên trường (không bắt buộc)"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-teal-500 text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all"
-              >
-                Bắt Đầu Khảo Sát
-              </button>
-            </form>
+            <button
+              onClick={() => setCurrentStep(1)}
+              className="w-full bg-gradient-to-r from-blue-500 to-teal-500 text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all"
+            >
+              Bắt Đầu Khảo Sát
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  if (isLastQuestion) {
+  if (currentStep > questions.length) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-12 px-4">
         <div className="max-w-2xl mx-auto">
@@ -239,127 +211,73 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
             </div>
             <h2 className="text-3xl font-bold mb-4 text-gray-800">Hoàn Thành!</h2>
             <p className="text-gray-600 mb-8">
-              Cảm ơn bạn đã hoàn thành khảo sát. Hãy xem kết quả phân tích của bạn!
+              Cảm ơn bạn đã hoàn thành khảo sát. Đang xử lý kết quả...
             </p>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={handlePrevious}
-                className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Xem lại
-              </button>
-              <button
-                onClick={() => submitSurvey('result')}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all"
-              >
-                Tình huống
-              </button>
-            </div>
           </div>
         </div>
       </div>
     );
   }
 
+  const currentQuestion = questions[currentStep - 1];
+  const currentSection = sections.find(s => s.code === currentQuestion.section_code);
+  const scaleOptions = currentSection
+    ? Array.from({ length: currentSection.scale_max - currentSection.scale_min + 1 }, (_, i) => i + currentSection.scale_min)
+    : [];
+
+  const sectionQuestions = questions.filter(q => q.section_code === currentQuestion.section_code);
+  const questionIndexInSection = sectionQuestions.findIndex(q => q.id === currentQuestion.id) + 1;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
-              Câu hỏi {currentStep} / {surveyQuestions.length}
+              Câu hỏi {currentStep} / {questions.length}
             </span>
             <span className="text-sm text-gray-600">
-              {Math.round((currentStep / surveyQuestions.length) * 100)}%
+              {Math.round((currentStep / questions.length) * 100)}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-gradient-to-r from-blue-500 to-teal-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / surveyQuestions.length) * 100}%` }}
+              style={{ width: `${(currentStep / questions.length) * 100}%` }}
             ></div>
           </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h3 className="text-2xl font-bold mb-8 text-gray-800">{currentQuestion.text}</h3>
+          <div className="mb-6">
+            <div className="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+              {currentSection?.name} - Câu {questionIndexInSection}/{sectionQuestions.length}
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800">{currentQuestion.question_text}</h3>
+          </div>
 
-          {currentQuestion.type === 'likert' && (
-            <div className="space-y-4">
-              {[
-                { value: 1, label: 'Hoàn toàn không đồng ý' },
-                { value: 2, label: 'Không đồng ý' },
-                { value: 3, label: 'Trung lập' },
-                { value: 4, label: 'Đồng ý' },
-                { value: 5, label: 'Hoàn toàn đồng ý' },
-              ].map((option) => (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-500">1 = Hoàn toàn không đồng ý</span>
+              <span className="text-sm text-gray-500">{currentSection?.scale_max} = Hoàn toàn đồng ý</span>
+            </div>
+
+            <div className="flex justify-between gap-2">
+              {scaleOptions.map((value) => (
                 <button
-                  key={option.value}
-                  onClick={() => handleAnswer(currentQuestion.id, option.value)}
-                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                    answers[currentQuestion.id] === option.value
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-blue-300'
+                  key={value}
+                  onClick={() => handleAnswer(currentQuestion.id, value)}
+                  className={`flex-1 py-8 rounded-lg border-2 transition-all ${
+                    answers[currentQuestion.id] === value
+                      ? 'border-blue-500 bg-blue-500 text-white shadow-lg transform scale-105'
+                      : 'border-gray-300 hover:border-blue-300 hover:bg-blue-50'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        answers[currentQuestion.id] === option.value
-                          ? 'border-blue-500 bg-blue-500'
-                          : 'border-gray-300'
-                      }`}
-                    >
-                      {answers[currentQuestion.id] === option.value && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
-                    </div>
-                    <span className="font-medium text-gray-700">{option.label}</span>
-                  </div>
+                  <div className="text-2xl font-bold">{value}</div>
                 </button>
               ))}
             </div>
-          )}
-
-          {currentQuestion.type === 'multiple_choice' && (
-            <div className="space-y-4">
-              {currentQuestion.options?.map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleAnswer(currentQuestion.id, index)}
-                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                    answers[currentQuestion.id] === index
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-blue-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        answers[currentQuestion.id] === index
-                          ? 'border-blue-500 bg-blue-500'
-                          : 'border-gray-300'
-                      }`}
-                    >
-                      {answers[currentQuestion.id] === index && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      )}
-                    </div>
-                    <span className="font-medium text-gray-700">{option}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {currentQuestion.type === 'open_ended' && (
-            <textarea
-              value={answers[currentQuestion.id] || ''}
-              onChange={(e) => handleAnswer(currentQuestion.id, e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[150px]"
-              placeholder="Nhập câu trả lời của bạn..."
-            />
-          )}
+          </div>
 
           <div className="flex gap-4 mt-8">
             {currentStep > 1 && (
@@ -376,7 +294,7 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
               disabled={answers[currentQuestion.id] === undefined}
               className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {currentStep === surveyQuestions.length ? 'Hoàn thành' : 'Câu tiếp theo'}
+              {currentStep === questions.length ? 'Hoàn thành' : 'Câu tiếp theo'}
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
