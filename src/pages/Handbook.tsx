@@ -66,7 +66,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
                     src={`${pdfUrl}#toolbar=1&navpanes=0`}
                     width="100%"
                     height="600"
-                    title="Cẩm nang hành vi bầy đàn"
+                    title="Cẩm nang gratia et vita"
                     className="w-full"
                   />
                 </div>
