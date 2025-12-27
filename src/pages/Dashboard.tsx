@@ -11,7 +11,8 @@ import {
   Clock,
   Target,
   MessageSquare,
-  Trash2
+  Trash2,
+  CheckCircle2
 } from 'lucide-react';
 
 interface SurveyData {
@@ -42,12 +43,17 @@ interface ChatMessage {
   created_at: string;
 }
 
-export default function Dashboard() {
+interface DashboardProps {
+  onNavigate: (page: string) => void;
+}
+
+export default function Dashboard({ onNavigate }: DashboardProps) {
   const { user } = useAuth();
   const [surveys, setSurveys] = useState<SurveyData[]>([]);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dailyTasksCompleted, setDailyTasksCompleted] = useState(0);
   const [stats, setStats] = useState({
     totalSurveys: 0,
     averageScore: 0,
@@ -137,6 +143,18 @@ export default function Dashboard() {
 
       setChatSessions(sessions);
 
+      const today = new Date().toISOString().split('T')[0];
+      const { data: tasksData, error: tasksError } = await supabase
+        .from('daily_tasks')
+        .select('completed')
+        .eq('user_id', user?.id)
+        .eq('task_date', today);
+
+      if (tasksError) throw tasksError;
+
+      const completedTasksCount = tasksData?.filter(t => t.completed).length || 0;
+      setDailyTasksCompleted(completedTasksCount);
+
       setStats({
         totalSurveys,
         averageScore: Math.round(averageScore),
@@ -212,6 +230,27 @@ export default function Dashboard() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Dashboard</h1>
           <p className="text-gray-600">Xin chào, {user?.user_metadata?.name || user?.email?.split('@')[0]}</p>
+        </div>
+
+        <div
+          onClick={() => onNavigate('dailytasks')}
+          className="bg-gradient-to-br from-blue-500 to-teal-500 rounded-2xl shadow-lg p-6 mb-8 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+        >
+          <div className="flex items-center justify-between text-white">
+            <div>
+              <h3 className="text-xl font-bold mb-2">Nhiệm Vụ Hàng Ngày</h3>
+              <p className="text-white text-opacity-90 mb-4">
+                Hoàn thành 3 nhiệm vụ mỗi ngày
+              </p>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="text-2xl font-bold">{dailyTasksCompleted}/3</span>
+              </div>
+            </div>
+            <div className="text-white text-opacity-50">
+              <CheckCircle2 className="w-16 h-16" />
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

@@ -11,9 +11,10 @@ import Reviews from './pages/Reviews';
 import Handbook from './pages/Handbook';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
+import DailyTasks from './pages/DailyTasks';
 import SituationAI from "./components/SituationAI";
 
-type Page = 'home' | 'survey' | 'situation' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook' | 'auth' | 'dashboard';
+type Page = 'home' | 'survey' | 'situation' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook' | 'auth' | 'dashboard' | 'dailytasks';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -75,7 +76,8 @@ function App() {
         {currentPage === 'handbook' && <Handbook onNavigate={handleNavigate} />}
         {currentPage === 'contact' && <Contact />}
         {currentPage === 'reviews' && <Reviews />}
-        {currentPage === 'dashboard' && <Dashboard />}
+        {currentPage === 'dashboard' && <Dashboard onNavigate={handleNavigate} />}
+        {currentPage === 'dailytasks' && <DailyTasks />}
 
         <Chatbot />
       </div>
