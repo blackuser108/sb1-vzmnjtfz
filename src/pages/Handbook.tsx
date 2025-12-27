@@ -5,7 +5,7 @@ interface HandbookProps {
 }
 
 export default function Handbook({ onNavigate }: HandbookProps) {
-  const pdfUrl = 'https://drive.google.com/file/d/112ruhDBStkxM9E-gzedYTY6ZzOsT2eyZ/view?usp=sharing';
+  const pdfUrl = 'https://drive.google.com/file/d/112ruhDBStkxM9E-gzedYTY6ZzOsT2eyZ/preview';
   const pdfFileName = 'Cam-nang-hanh-vi-bay-dan.pdf';
 
   const handleDownload = () => {
