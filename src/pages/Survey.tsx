@@ -258,8 +258,17 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
 
           <div className="space-y-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-gray-500">1 = Hoàn toàn không đồng ý</span>
-              <span className="text-sm text-gray-500">{currentSection?.scale_max} = Hoàn toàn đồng ý</span>
+              {currentSection?.code === 'Y' ? (
+                <>
+                  <span className="text-sm text-gray-500">1 = Không bao giờ/hầu như không bao giờ đúng</span>
+                  <span className="text-sm text-gray-500">5 = Luôn đúng/Hầu như luôn đúng</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm text-gray-500">1 = Hoàn toàn không đồng ý</span>
+                  <span className="text-sm text-gray-500">7 = Hoàn toàn đồng ý</span>
+                </>
+              )}
             </div>
 
             <div className="flex justify-between gap-2">
