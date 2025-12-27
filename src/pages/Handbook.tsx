@@ -1,20 +1,49 @@
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, FileDown } from 'lucide-react';
+import { useState } from 'react';
 
 interface HandbookProps {
   onNavigate: (page: string) => void;
 }
 
 export default function Handbook({ onNavigate }: HandbookProps) {
-  const pdfUrl = 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/pdf-1.pdf';
-  const pdfFileName = 'Cam-nang-hanh-vi-bay-dan.pdf';
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = pdfFileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const googleDriveFileId = '112ruhDBStkxM9E-gzedYTY6ZzOsT2eyZ';
+  const pdfFileName = 'Cam-nang-hanh-vi-bay-dan.pdf';
+  const previewUrl = `https://drive.google.com/file/d/${googleDriveFileId}/preview`;
+  const downloadUrl = `https://drive.google.com/uc?export=download&id=${googleDriveFileId}`;
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/download-handbook`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ fileId: googleDriveFileId, fileName: pdfFileName }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = pdfFileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        throw new Error('Download failed');
+      }
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      window.open(downloadUrl, '_blank');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -63,25 +92,36 @@ export default function Handbook({ onNavigate }: HandbookProps) {
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Xem Trước Tài Liệu</h2>
                 <div className="bg-gray-100 rounded-xl overflow-hidden shadow-lg border-2 border-gray-200">
                   <iframe
-                    src={`${pdfUrl}#toolbar=1&navpanes=0`}
+                    src={previewUrl}
                     width="100%"
                     height="600"
                     title="Cẩm nang hành vi bầy đàn"
                     className="w-full"
+                    allow="autoplay"
                   />
                 </div>
                 <p className="text-sm text-gray-500 mt-4">
-                  Nếu không thể xem PDF tại đây, vui lòng tải xuống tài liệu bằng nút bên dưới
+                  Bạn có thể xem trước tài liệu ở trên hoặc tải xuống bằng nút bên dưới
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={handleDownload}
-                  className="flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-bold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all"
+                  disabled={isDownloading}
+                  className="flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-bold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Download className="w-5 h-5" />
-                  Tải Xuống Tài Liệu
+                  {isDownloading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Đang tải...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-5 h-5" />
+                      Tải Xuống Tài Liệu
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={() => onNavigate('home')}
