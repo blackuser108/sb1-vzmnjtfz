@@ -21,6 +21,7 @@ interface TaskResponse {
   question_id: string;
   response_text?: string;
   response_value?: number;
+  checked?: boolean;
 }
 
 export default function DailyTasks() {
@@ -82,14 +83,21 @@ export default function DailyTasks() {
     setResponses({});
   };
 
-  const handleResponseChange = (questionId: string, value: string | number, isText: boolean) => {
+  const handleResponseChange = (questionId: string, value: string | number | boolean, type: 'text' | 'value' | 'checkbox') => {
     setResponses(prev => ({
       ...prev,
       [questionId]: {
         question_id: questionId,
-        ...(isText ? { response_text: value as string } : { response_value: value as number })
+        ...(type === 'text' ? { response_text: value as string } :
+            type === 'checkbox' ? { checked: value as boolean, response_value: value ? 1 : 0 } :
+            { response_value: value as number })
       }
     }));
+  };
+
+  const handleCheckboxToggle = (questionId: string) => {
+    const currentChecked = responses[questionId]?.checked || false;
+    handleResponseChange(questionId, !currentChecked, 'checkbox');
   };
 
   const handleSubmitTask = async () => {
@@ -207,7 +215,9 @@ export default function DailyTasks() {
       isEssay = false;
     }
 
-    const allAnswered = questions.every(q => responses[q.id]);
+    const allAnswered = activeTask === 'prosocial'
+      ? Object.keys(responses).length > 0
+      : questions.every(q => responses[q.id] && (responses[q.id].response_text || responses[q.id].response_value));
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -222,40 +232,59 @@ export default function DailyTasks() {
             </button>
           </div>
 
-          <div className="p-6 space-y-6">
-            {questions.map((question, index) => (
-              <div key={question.id} className="space-y-3">
-                <label className="block text-lg font-semibold text-gray-800">
-                  {index + 1}. {question.question_text}
-                </label>
-
-                {isEssay ? (
-                  <textarea
-                    value={responses[question.id]?.response_text || ''}
-                    onChange={(e) => handleResponseChange(question.id, e.target.value, true)}
-                    rows={4}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Nhập câu trả lời của bạn..."
-                  />
-                ) : (
-                  <div className="flex gap-2 justify-center">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <button
-                        key={value}
-                        onClick={() => handleResponseChange(question.id, value, false)}
-                        className={`w-12 h-12 rounded-lg font-bold transition-all ${
-                          responses[question.id]?.response_value === value
-                            ? 'bg-blue-600 text-white scale-110'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        {value}
-                      </button>
-                    ))}
+          <div className="p-6">
+            {activeTask === 'prosocial' ? (
+              <div className="space-y-3">
+                <p className="text-gray-600 mb-4">
+                  Hãy đánh dấu những hành động bạn đã thực hiện hôm nay:
+                </p>
+                {questions.map((question) => (
+                  <div
+                    key={question.id}
+                    onClick={() => handleCheckboxToggle(question.id)}
+                    className={`flex items-start gap-3 p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                      responses[question.id]?.checked
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <div className={`flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
+                      responses[question.id]?.checked
+                        ? 'bg-green-500 border-green-500'
+                        : 'border-gray-300'
+                    }`}>
+                      {responses[question.id]?.checked && (
+                        <Check className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                    <span className={`text-base ${
+                      responses[question.id]?.checked
+                        ? 'text-gray-800 font-medium'
+                        : 'text-gray-700'
+                    }`}>
+                      {question.question_text}
+                    </span>
                   </div>
-                )}
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="space-y-6">
+                {questions.map((question, index) => (
+                  <div key={question.id} className="space-y-3">
+                    <label className="block text-lg font-semibold text-gray-800">
+                      {index + 1}. {question.question_text}
+                    </label>
+                    <textarea
+                      value={responses[question.id]?.response_text || ''}
+                      onChange={(e) => handleResponseChange(question.id, e.target.value, 'text')}
+                      rows={4}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Nhập câu trả lời của bạn..."
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="flex gap-4 pt-4">
               <button
