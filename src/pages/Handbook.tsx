@@ -5,7 +5,7 @@ interface HandbookProps {
 }
 
 export default function Handbook({ onNavigate }: HandbookProps) {
-  const pdfUrl = 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/pdf-1.pdf';
+  const pdfUrl = 'https://drive.google.com/file/d/112ruhDBStkxM9E-gzedYTY6ZzOsT2eyZ/view?usp=sharing';
   const pdfFileName = 'Cam-nang-hanh-vi-bay-dan.pdf';
 
   const handleDownload = () => {
