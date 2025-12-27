@@ -12,9 +12,8 @@ import Handbook from './pages/Handbook';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import DailyTasks from './pages/DailyTasks';
-import SituationAI from "./components/SituationAI";
 
-type Page = 'home' | 'survey' | 'situation' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook' | 'auth' | 'dashboard' | 'dailytasks';
+type Page = 'home' | 'survey' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook' | 'auth' | 'dashboard' | 'dailytasks';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -26,11 +25,7 @@ function App() {
 
   const handleSurveyComplete = (id: string) => {
     setSurveyId(id);
-    setCurrentPage('situation');
-  };
-  
-  const handleSituationComplete = () => {
-    setCurrentPage('result'); // chuyển sang phần kết quả
+    setCurrentPage('result');
   };
 
   const handleBackHome = () => {
@@ -61,13 +56,6 @@ function App() {
         )}
         {currentPage === 'survey' && (
           <Survey onComplete={handleSurveyComplete} onBack={handleBackFromSurvey} />
-        )}
-        {currentPage === 'situation' && (
-          <SituationAI
-            surveyId={surveyId}
-            onBack={() => setCurrentPage('home')}
-            onComplete={() => setCurrentPage('result')}
-          />
         )}
         {currentPage === 'result' && (
           <Result surveyId={surveyId} onBackHome={() => setCurrentPage('home')} />

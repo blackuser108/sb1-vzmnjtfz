@@ -23,6 +23,46 @@ interface Section {
   scale_max: number;
 }
 
+const sectionInfo: Record<string, { title: string; instruction: string; scaleLabels: string[] }> = {
+  'X': {
+    title: 'BẢNG 1: Thang đo lòng biết ơn (GQ - 6)',
+    instruction: 'Anh/chị hãy đọc kỹ từng mệnh đề được đưa ra dưới đây và lựa chọn phương án trả lời phù hợp nhất với anh/chị. Anh/chị lưu ý mỗi mệnh đề chỉ lựa chọn 01 phương án trả lời trong số 07 phương án được đưa ra.',
+    scaleLabels: [
+      '1 = Hoàn toàn không đồng ý',
+      '2 = Không đồng ý',
+      '3 = Hơi không đồng ý',
+      '4 = Trung lập',
+      '5 = Hơi đồng ý',
+      '6 = Đồng ý',
+      '7 = Hoàn toàn đồng ý'
+    ]
+  },
+  'Y': {
+    title: 'BẢNG 2: Thang đo hành vi ủng hộ xã hội (PSA)',
+    instruction: 'Các mệnh đề dưới đây mô tả một số lượng lớn các tình huống phổ biến. Không có câu trả lời "đúng" hay "sai"; câu trả lời tốt nhất là câu trả lời tự phát, đến ngay sau khi anh/chị đọc xong mệnh đề. Anh/chị hãy đọc từng mệnh đề và lựa chọn phương án trả lời đến đầu tiên trong suy nghĩ của anh/chị.',
+    scaleLabels: [
+      '1 = Không bao giờ/hầu như không bao giờ đúng',
+      '2 = Thỉnh thoảng đúng',
+      '3 = Đôi khi đúng (đúng nhiều hơn mức "thỉnh thoảng")',
+      '4 = Thường đúng',
+      '5 = Luôn đúng/Hầu như luôn đúng'
+    ]
+  },
+  'M': {
+    title: 'BẢNG 3: Thang đo ý nghĩa cuộc sống (MLQ)',
+    instruction: 'Anh/chị hãy đọc kỹ từng mệnh đề được đưa ra dưới đây và lựa chọn phương án trả lời phù hợp nhất với anh/chị.',
+    scaleLabels: [
+      '1 = Hoàn toàn sai',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7 = Hoàn toàn đúng'
+    ]
+  }
+};
+
 export default function Survey({ onComplete, onBack }: SurveyProps) {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
@@ -30,6 +70,8 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [showSectionIntro, setShowSectionIntro] = useState(false);
+  const [currentSectionCode, setCurrentSectionCode] = useState<string>('');
 
   useEffect(() => {
     loadSurveyData();
@@ -99,7 +141,20 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
   };
 
   const handleNext = () => {
+    if (showSectionIntro) {
+      setShowSectionIntro(false);
+      return;
+    }
+
     if (currentStep < questions.length) {
+      const nextQuestion = questions[currentStep];
+      const currentQuestion = questions[currentStep - 1];
+
+      if (currentQuestion && nextQuestion && currentQuestion.section_code !== nextQuestion.section_code) {
+        setCurrentSectionCode(nextQuestion.section_code);
+        setShowSectionIntro(true);
+      }
+
       setCurrentStep(currentStep + 1);
     } else {
       submitSurvey();
@@ -107,8 +162,22 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
   };
 
   const handlePrevious = () => {
+    if (showSectionIntro) {
+      setShowSectionIntro(false);
+      setCurrentStep(currentStep - 1);
+      return;
+    }
+
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleStartSurvey = () => {
+    if (questions.length > 0) {
+      setCurrentSectionCode(questions[0].section_code);
+      setShowSectionIntro(true);
+      setCurrentStep(1);
     }
   };
 
@@ -184,16 +253,59 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <p className="text-gray-700">
-                <strong>Lưu ý:</strong> Khảo sát gồm {questions.length} câu hỏi.
+                <strong>Lưu ý:</strong> Khảo sát gồm {questions.length} câu hỏi chia thành 3 phần.
                 Vui lòng trả lời trung thực để có kết quả chính xác nhất.
               </p>
             </div>
 
             <button
-              onClick={() => setCurrentStep(1)}
+              onClick={handleStartSurvey}
               className="w-full bg-gradient-to-r from-blue-500 to-teal-500 text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all"
             >
               Bắt Đầu Khảo Sát
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showSectionIntro && currentSectionCode) {
+    const info = sectionInfo[currentSectionCode];
+    const sectionQuestions = questions.filter(q => q.section_code === currentSectionCode);
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">{info.title}</h2>
+
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg mb-6">
+              <p className="text-gray-700 leading-relaxed">{info.instruction}</p>
+            </div>
+
+            <div className="mb-8">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Thang đo:</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {info.scaleLabels.map((label, index) => (
+                  <div key={index} className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-lg">
+                    <span className="text-gray-700">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <p className="text-gray-700">
+                <strong>Phần này gồm {sectionQuestions.length} câu hỏi.</strong> Hãy đọc kỹ và chọn phương án phù hợp nhất với bạn.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowSectionIntro(false)}
+              className="w-full bg-gradient-to-r from-blue-500 to-teal-500 text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all"
+            >
+              Bắt Đầu Trả Lời
             </button>
           </div>
         </div>
@@ -257,20 +369,6 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
           </div>
 
           <div className="space-y-4">
-            <div className="flex justify-between items-center mb-2">
-              {currentSection?.code === 'Y' ? (
-                <>
-                  <span className="text-sm text-gray-500">1 = Không bao giờ/hầu như không bao giờ đúng</span>
-                  <span className="text-sm text-gray-500">5 = Luôn đúng/Hầu như luôn đúng</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-sm text-gray-500">1 = Hoàn toàn không đồng ý</span>
-                  <span className="text-sm text-gray-500">7 = Hoàn toàn đồng ý</span>
-                </>
-              )}
-            </div>
-
             <div className="flex justify-between gap-2">
               {scaleOptions.map((value) => (
                 <button
