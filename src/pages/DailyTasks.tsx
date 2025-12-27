@@ -41,14 +41,40 @@ export default function DailyTasks() {
     }
   }, [user]);
 
+  const getDayNumber = () => {
+    const baseDate = new Date('2025-01-01');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    baseDate.setHours(0, 0, 0, 0);
+    const diffTime = today.getTime() - baseDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return (diffDays % 7) + 1;
+  };
+
   const loadData = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
+      const currentDay = getDayNumber();
 
-      const [questionsResult, tasksResult] = await Promise.all([
+      const [gratitudeResult, meaningResult, prosocialResult, tasksResult] = await Promise.all([
         supabase
           .from('task_questions')
           .select('*')
+          .eq('task_type', 'gratitude')
+          .eq('day_number', currentDay)
+          .eq('is_active', true)
+          .order('question_order'),
+        supabase
+          .from('task_questions')
+          .select('*')
+          .eq('task_type', 'meaning')
+          .eq('day_number', currentDay)
+          .eq('is_active', true)
+          .order('question_order'),
+        supabase
+          .from('task_questions')
+          .select('*')
+          .eq('task_type', 'prosocial')
           .eq('is_active', true)
           .order('question_order'),
         supabase
@@ -58,12 +84,15 @@ export default function DailyTasks() {
           .eq('task_date', today)
       ]);
 
-      if (questionsResult.data) {
-        setGratitudeQuestions(questionsResult.data.filter(q => q.task_type === 'gratitude'));
-        setMeaningQuestions(questionsResult.data.filter(q => q.task_type === 'meaning'));
-        setProsocialQuestions(questionsResult.data.filter(q => q.task_type === 'prosocial'));
+      if (gratitudeResult.data) {
+        setGratitudeQuestions(gratitudeResult.data);
       }
-
+      if (meaningResult.data) {
+        setMeaningQuestions(meaningResult.data);
+      }
+      if (prosocialResult.data) {
+        setProsocialQuestions(prosocialResult.data);
+      }
       if (tasksResult.data) {
         setDailyTasks(tasksResult.data);
       }
@@ -317,11 +346,15 @@ export default function DailyTasks() {
 
   const completedCount = dailyTasks.filter(t => t.completed).length;
   const totalTasks = 3;
+  const currentDay = getDayNumber();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
+          <div className="inline-block bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
+            Ngày {currentDay}/7
+          </div>
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
             Nhiệm Vụ Hàng Ngày
           </h1>
