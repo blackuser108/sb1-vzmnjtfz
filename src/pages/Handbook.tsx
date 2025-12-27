@@ -9,7 +9,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const googleDriveFileId = '112ruhDBStkxM9E-gzedYTY6ZzOsT2eyZ';
-  const pdfFileName = 'Cam-nang-hanh-vi-bay-dan.pdf';
+  const pdfFileName = 'Cam-nang-gratia-et-vita.pdf';
   const previewUrl = `https://drive.google.com/file/d/${googleDriveFileId}/preview`;
   const downloadUrl = `https://drive.google.com/uc?export=download&id=${googleDriveFileId}`;
 
@@ -60,7 +60,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
         <div className="max-w-5xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500 to-teal-500 p-8 text-white">
-              <h1 className="text-4xl font-bold mb-4">Cẩm Nang Hành Vi Bầy Đàn</h1>
+              <h1 className="text-4xl font-bold mb-4">Cẩm Nang Gratia Et Vita</h1>
               <p className="text-lg opacity-90">
                 Hướng dẫn chi tiết giúp bạn hiểu rõ và quản lý hành vi bầy đàn trong cuộc sống hàng ngày
               </p>
