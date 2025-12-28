@@ -135,14 +135,12 @@ export default function Handbook({ onNavigate }: HandbookProps) {
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Nội Dung Chính</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   {[
-                    'Khái niệm hành vi bầy đàn',
-                    'Lý do tại sao chúng ta dễ bị ảnh hưởng',
-                    'Nhận biết áp lực bạn bè',
-                    'Kỹ năng đưa ra quyết định độc lập',
-                    'Xây dựng sự tự tin',
-                    'Làm thế nào để bảo vệ bản thân',
-                    'Hỗ trợ bạn bè gặp khó khăn',
-                    'Tư vấn chuyên gia'
+                    'Lời mở đầu',
+                    'Khái niệm',
+                    'Biểu hiện',
+                    'Mối tương quan',
+                    'Bộ công cụ thực hành',
+                    'Lời cảm ơn'
                   ].map((item, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
