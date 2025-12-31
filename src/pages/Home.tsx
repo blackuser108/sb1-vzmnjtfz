@@ -55,9 +55,9 @@ export default function Home({ onStartSurvey }: HomeProps) {
               <div className="w-14 h-14 bg-teal-500 rounded-full flex items-center justify-center mb-4">
                 <Users className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-teal-900">Kỹ Năng Xã Hội</h3>
+              <h3 className="text-xl font-bold mb-3 text-teal-900">Giá trị sống</h3>
               <p className="text-gray-700">
-                Phát triển khả năng đưa ra quyết định độc lập và tự tin hơn
+                Nhận ra vai trò của ý nghĩa cuộc sống trong việc định hướng suy nghĩ, cảm xúc và hành động tích cực với người khác.
               </p>
             </div>
 
@@ -65,9 +65,9 @@ export default function Home({ onStartSurvey }: HomeProps) {
               <div className="w-14 h-14 bg-purple-500 rounded-full flex items-center justify-center mb-4">
                 <FileChartPie className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-purple-900">Phân Tích Chi Tiết</h3>
+              <h3 className="text-xl font-bold mb-3 text-purple-900">Hành Vi Xã Hội</h3>
               <p className="text-gray-700">
-                Nhận được báo cáo phân tích chi tiết về xu hướng hành vi của bạn
+                Khám phá cách bạn thể hiện sự quan tâm, chia sẻ và ủng hộ xã hội trong các tình huống khác nhau.
               </p>
             </div>
 
@@ -75,9 +75,9 @@ export default function Home({ onStartSurvey }: HomeProps) {
               <div className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center mb-4">
                 <Shield className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-orange-900">Cải Thiện Bản Thân</h3>
+              <h3 className="text-xl font-bold mb-3 text-orange-900">Phát Triển Bản Thân</h3>
               <p className="text-gray-700">
-                Học cách nhận biết và tránh những ảnh hưởng tiêu cực từ áp lực nhóm
+                Góp phần nuôi dưỡng lòng biết ơn, ý nghĩa sống và khuyến khích những hành vi tốt đẹp cho cộng đồng.
               </p>
             </div>
           </div>
