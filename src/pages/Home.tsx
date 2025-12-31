@@ -91,14 +91,10 @@ export default function Home({ onStartSurvey }: HomeProps) {
               Tính Cấp Thiết Của Nghiên Cứu
             </h2>
             <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-              Hành vi bầy đàn là xu hướng làm theo những gì mà đa số mọi người đang làm,
-              ngay cả khi điều đó không phù hợp với suy nghĩ hay giá trị của bạn. Ở lứa tuổi
-              học sinh, áp lực từ bạn bè và mong muốn được chấp nhận có thể khiến chúng ta dễ
-              dàng bị cuốn theo dòng chảy.
+              Ở lứa tuổi THPT, học sinh đang trong giai đoạn hình thành giá trị sống và nhân cách, nhưng dễ chịu tác động từ áp lực học tập và các mối quan hệ xã hội. Việc thiếu lòng biết ơn và ý nghĩa cuộc sống có thể làm giảm các hành vi quan tâm, sẻ chia và ủng hộ người khác.
             </p>
             <p className="text-lg text-gray-700 leading-relaxed">
-              Việc nhận biết và hiểu rõ mức độ ảnh hưởng này sẽ giúp bạn trở nên tự tin hơn
-              trong việc đưa ra quyết định của riêng mình!
+              Nghiên cứu này giúp làm rõ mối quan hệ giữa lòng biết ơn và hành vi ủng hộ xã hội, đồng thời nhấn mạnh vai trò trung gian của ý nghĩa cuộc sống. Từ đó, góp phần định hướng các hoạt động giáo dục và nuôi dưỡng những giá trị tích cực cho học sinh.
             </p>
           </div>
         </div>
