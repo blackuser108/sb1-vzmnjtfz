@@ -83,19 +83,24 @@ export default function Survey({ onComplete, onBack }: SurveyProps) {
         supabase
           .from('survey_sections')
           .select('*')
-          .order('code'),
+          .order('display_order'),
         supabase
           .from('survey_questions')
           .select('*')
           .eq('is_active', true)
-          .order('section_code, question_order')
       ]);
 
       if (sectionsResult.data) {
         setSections(sectionsResult.data);
       }
       if (questionsResult.data) {
-        setQuestions(questionsResult.data);
+        const sectionOrder: Record<string, number> = { 'X': 1, 'Y': 2, 'M': 3 };
+        const sortedQuestions = questionsResult.data.sort((a, b) => {
+          const sectionCompare = (sectionOrder[a.section_code] || 0) - (sectionOrder[b.section_code] || 0);
+          if (sectionCompare !== 0) return sectionCompare;
+          return a.question_order - b.question_order;
+        });
+        setQuestions(sortedQuestions);
       }
     } catch (error) {
       console.error('Error loading survey data:', error);
