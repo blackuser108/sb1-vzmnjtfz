@@ -62,7 +62,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
             <div className="bg-gradient-to-r from-blue-500 to-teal-500 p-8 text-white">
               <h1 className="text-4xl font-bold mb-4">Cẩm Nang Gratia Et Vita</h1>
               <p className="text-lg opacity-90">
-                Hướng dẫn chi tiết giúp bạn hiểu rõ và quản lý hành vi bầy đàn trong cuộc sống hàng ngày
+                Cẩm nang “Gratia et vita” được xây dựng như một tài liệu đồng hành tinh thần dành cho học sinh, nhằm hỗ trợ nuôi dưỡng lòng biết ơn và thúc đẩy hành vi tâm lí tích cực trong đời sống học đường. 
               </p>
             </div>
 
