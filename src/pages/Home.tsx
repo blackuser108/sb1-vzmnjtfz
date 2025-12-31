@@ -47,7 +47,7 @@ export default function Home({ onStartSurvey }: HomeProps) {
               </div>
               <h3 className="text-xl font-bold mb-3 text-blue-900">Tự Nhận Thức</h3>
               <p className="text-gray-700">
-                Hiểu rõ hơn về bản thân và cách bạn bị ảnh hưởng bởi môi trường xung quanh
+                Giúp bạn hiểu rõ hơn mức độ lòng biết ơn và ý nghĩa cuộc sống của bản thân trong cuộc sống hằng ngày.
               </p>
             </div>
 
