@@ -27,7 +27,7 @@ export default function Reviews() {
         .from('reviews')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(100);
 
       if (error) throw error;
       setReviews(data || []);
@@ -191,7 +191,7 @@ export default function Reviews() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4 max-h-[600px] overflow-y-auto">
+              <div className="space-y-4 max-h-[800px] overflow-y-auto">
                 {reviews.map((review) => (
                   <div key={review.id} className="bg-white rounded-2xl shadow-md p-6">
                     <div className="flex items-start justify-between mb-3">
