@@ -19,7 +19,7 @@ export default function Chatbot() {
     {
       role: 'assistant',
       content:
-        'Xin chào! Mình là trợ lý AI. Bạn có thắc mắc gì về lòng tốt và hành vi ủng hộ xã hội không? Hay về vai trò trung gian của ý nghĩa cuộc sống? Mình sẵn sàng giúp bạn!',
+        'Xin chào! Mình là trợ lý AI. Bạn có thắc mắc gì về lòng biết ơn và hành vi ủng hộ xã hội không? Hay về vai trò trung gian của ý nghĩa cuộc sống? Mình sẵn sàng giúp bạn!',
     },
   ]);
   const [input, setInput] = useState('');
@@ -58,7 +58,7 @@ export default function Chatbot() {
       {
         role: 'assistant',
         content:
-          'Xin chào! Mình là trợ lý AI. Bạn có thắc mắc gì về lòng tốt và hành vi ủng hộ xã hội không? Hay về vai trò trung gian của ý nghĩa cuộc sống? Mình sẵn sàng giúp bạn!',
+          'Xin chào! Mình là trợ lý AI. Bạn có thắc mắc gì về lòng biết ơn và hành vi ủng hộ xã hội không? Hay về vai trò trung gian của ý nghĩa cuộc sống? Mình sẵn sàng giúp bạn!',
       },
     ]);
   };
