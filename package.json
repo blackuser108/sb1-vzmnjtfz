@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "serve": "node server.js",
     "import-knowledge": "node scripts/import-knowledge.js",
-    "import-tutor-knowledge": "node scripts/import-tutor-knowledge.js"
+    "import-tutor-knowledge": "node scripts/import-tutor-knowledge.js",
+    "generate-reviews": "node scripts/generate-reviews.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

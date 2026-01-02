@@ -8,6 +8,8 @@ export default function Reviews() {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
     rating: 5,
@@ -16,6 +18,7 @@ export default function Reviews() {
 
   useEffect(() => {
     loadReviews();
+    loadStats();
   }, []);
 
   const loadReviews = async () => {
@@ -32,6 +35,24 @@ export default function Reviews() {
       console.error('Error loading reviews:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('rating');
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setTotalCount(data.length);
+        const sum = data.reduce((acc: number, review: { rating: number }) => acc + review.rating, 0);
+        setAverageRating(sum / data.length);
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error);
     }
   };
 
@@ -56,6 +77,7 @@ export default function Reviews() {
       alert('Cảm ơn bạn đã đánh giá!');
       setFormData({ name: '', rating: 5, comment: '' });
       loadReviews();
+      loadStats();
     } catch (error) {
       console.error('Error submitting review:', error);
       alert('Có lỗi xảy ra. Vui lòng thử lại!');
@@ -85,11 +107,6 @@ export default function Reviews() {
     );
   };
 
-  const getAverageRating = () => {
-    if (reviews.length === 0) return 0;
-    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
-    return (sum / reviews.length).toFixed(1);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-12 px-4">
@@ -103,13 +120,13 @@ export default function Reviews() {
           </p>
         </div>
 
-        {!loading && reviews.length > 0 && (
+        {!loading && totalCount > 0 && (
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 text-center">
             <div className="flex items-center justify-center gap-4 mb-2">
-              <span className="text-5xl font-bold text-gray-800">{getAverageRating()}</span>
+              <span className="text-5xl font-bold text-gray-800">{averageRating.toFixed(2)}</span>
               <div>
-                {renderStars(Math.round(parseFloat(getAverageRating())))}
-                <p className="text-sm text-gray-600 mt-1">{reviews.length} đánh giá</p>
+                {renderStars(Math.round(averageRating))}
+                <p className="text-sm text-gray-600 mt-1">{totalCount} đánh giá</p>
               </div>
             </div>
           </div>
