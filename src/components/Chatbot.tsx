@@ -132,6 +132,7 @@ Khi trả lời:
 - Phải trả lời đúng thông tin dựa vào tài liệu sẵn có không lạc đề, tránh lệch hướng
 - Nếu có câu hỏi gần giống hoặc giống với câu hỏi trong tài liệu thì giữ nguyên để trả lời không thay đổi gì cả vì ngôn ngữ của bạn dễ gây sai lầm 
 - Có những câu nhắn từ người dùng sẽ khen bạn trả lời hay hoặc tuyệt vời bạn nên chỉ cảm ơn họ và hỏi rằng họ có còn thắc mắc gì không và bạn có thể gợi ý câu hỏi mở  nếu muốn.
+- Sau khi đọc câu hỏi hãy quét lại file thêm 3 lần nữa để trả lời cho chính xác
 
 ${knowledgeContext ? `Hãy sử dụng thông tin sau để cải thiện câu trả lời của bạn:${knowledgeContext}` : ''}
                 `,
