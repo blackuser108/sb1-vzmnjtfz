@@ -1,0 +1,31 @@
+3. Khách thể và Phương pháp nghiên cứu
+
+3.1. Khách thể nghiên cứu
+
+Khách thể của nghiên cứu là trẻ vị thành niên trong độ tuổi từ 16 đến 18. Mẫu nghiên cứu tập trung vào các cá nhân hiện đang sinh sống và theo học tại các trường Trung học phổ thông (THPT) trên địa bàn thành phố Đà Nẵng.
+
+3.2. Phương pháp luận
+
+Phương pháp thu thập dữ liệu
+
+Nghiên cứu sử dụng phương pháp điều tra bằng bảng hỏi. Dựa trên khung lý thuyết và các giả thuyết nghiên cứu, các thang đo chuẩn hóa sau đây đã được sử dụng:
+
+- Thang đo GQ-6 (Gratitude Questionnaire-6; McCullough et al., 2002): Dùng để đo lường lòng biết ơn. Thang đo này đã được Việt hóa (Nguyễn Phước Cát Tường và các cộng sự, 2020) với hệ số tin cậy \alpha = 0,83.
+
+- Thang đo PSA (Prosocial Scale for Adolescents; Caprara et al., 2005): Dùng để đo lường hành vi ủng hộ xã hội. Thang đo có độ tin cậy được báo cáo là \alpha > 0,8 và đã được điều chỉnh để phù hợp với đối tượng học sinh THPT (16–18 tuổi).
+
+- Thang đo MLQ (Meaning in Life Questionnaire; Steger et al., 2006): Dùng để đo lường ý nghĩa cuộc sống (với hai nhân tố: Sự hiện diện và Sự tìm kiếm). Thang đo được Trương Thị Khánh Hà và các cộng sự (2024) Việt hóa và chuẩn hóa với hệ số tin cậy \alpha = 0,8.
+
+3.3. Phương pháp xử lý dữ liệu (Thống kê toán học)
+
+Nghiên cứu sử dụng phần mềm SPSS để xử lý và phân tích dữ liệu theo các bước sau:
+
+- Thống kê mô tả: Sử dụng để tính toán giá trị trung bình nhằm đánh giá mức độ của các biến số (lòng biết ơn, ý nghĩa cuộc sống, hành vi ủng hộ xã hội), và tỷ lệ phần trăm giá trị (valid percent) để mô tả sự phân bố các câu trả lời trên thang đo Likert.
+
+- Phân tích tương quan: Kiểm định tương quan Pearson được thực hiện để khảo sát mối quan hệ giữa các biến. Các biến có tương quan có ý nghĩa sẽ được đưa vào phân tích hồi quy.
+
+- Phân tích hồi quy: Phân tích hồi quy đơn và hồi quy đa biến được thực hiện nhằm xTôi xét ảnh hưởng của biến lòng biết ơn lên hành vi ủng hộ xã hội và ý nghĩa cuộc sống, cũng như ảnh hưởng của ý nghĩa cuộc sống lên hành vi ủng hộ xã hội.
+
+- Kiểm định vai trò trung gian: Quy trình ba bước của Baron và Kenny (1986) được áp dụng để kiểm định vai trò trung gian của ý nghĩa cuộc sống trong mối quan hệ giữa lòng biết ơn và hành vi ủng hộ xã hội.
+
+Ngoài ra, nghiên cứu cũng tiến hành phân tích sự khác biệt giữa các nhóm dựa trên biến giới tính sinh học.
