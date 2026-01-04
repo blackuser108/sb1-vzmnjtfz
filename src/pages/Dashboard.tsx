@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
-  User,
   FileText,
   TrendingUp,
   Calendar,
@@ -16,6 +15,19 @@ import {
   LineChart,
   PieChart
 } from 'lucide-react';
+import {
+  LineChart as RechartsLineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell
+} from 'recharts';
 
 interface SurveyData {
   id: string;
@@ -65,9 +77,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [dailyScores, setDailyScores] = useState<DailyScore[]>([]);
   const [stats, setStats] = useState({
     totalSurveys: 0,
-    averageScore: 0,
-    latestRiskLevel: '',
-    improvementRate: 0,
+    latestXLevel: '',
+    latestYLevel: '',
+    latestMLevel: '',
     totalChats: 0
   });
 
@@ -91,28 +103,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       setSurveys(formattedSurveys);
 
       const totalSurveys = formattedSurveys.length;
-      const averageScores = formattedSurveys.map((s: any) =>
-        (Number(s.x_score) + Number(s.y_score) + Number(s.m_score)) / 3
-      );
-
-      const averageScore = averageScores.length > 0
-        ? averageScores.reduce((a: number, b: number) => a + b, 0) / averageScores.length
-        : 0;
-
       const latestSurvey = formattedSurveys[0];
-      const latestRiskLevel = latestSurvey ?
-        (latestSurvey.x_level === 'Rất thấp' || latestSurvey.y_level === 'Rất thấp' || latestSurvey.m_level === 'Rất thấp' ? 'Rất thấp' :
-         latestSurvey.x_level === 'Thấp' || latestSurvey.y_level === 'Thấp' || latestSurvey.m_level === 'Thấp' ? 'Thấp' :
-         latestSurvey.x_level === 'Cao' || latestSurvey.y_level === 'Cao' || latestSurvey.m_level === 'Cao' ? 'Cao' :
-         latestSurvey.x_level === 'Rất cao' || latestSurvey.y_level === 'Rất cao' || latestSurvey.m_level === 'Rất cao' ? 'Rất cao' : 'Trung bình')
-        : '';
-
-      let improvementRate = 0;
-      if (averageScores.length >= 2) {
-        const firstScore = averageScores[averageScores.length - 1];
-        const lastScore = averageScores[0];
-        improvementRate = ((lastScore - firstScore) / firstScore) * 100;
-      }
 
       const { data: chatData, error: chatError } = await supabase
         .from('chat_history')
@@ -165,9 +156,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
       setStats({
         totalSurveys,
-        averageScore: Math.round(averageScore),
-        latestRiskLevel,
-        improvementRate: Math.round(improvementRate),
+        latestXLevel: latestSurvey?.x_level || '',
+        latestYLevel: latestSurvey?.y_level || '',
+        latestMLevel: latestSurvey?.m_level || '',
         totalChats: sessions.length
       });
 
@@ -222,6 +213,36 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return configs[level] || configs['Trung bình'];
   };
 
+  const getSurveyProgressData = () => {
+    return surveys.slice().reverse().map((survey, index) => ({
+      name: `Lần ${index + 1}`,
+      date: new Date(survey.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+      'Lòng biết ơn': Number(survey.x_score),
+      'Hành vi xã hội': Number(survey.y_score),
+      'Ý nghĩa cuộc sống': Number(survey.m_score)
+    }));
+  };
+
+  const getDailyGratitudeData = () => {
+    return dailyScores
+      .filter(s => s.gratitude_score !== null)
+      .slice(-14)
+      .map(score => ({
+        date: new Date(score.task_date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+        'Điểm': score.gratitude_score
+      }));
+  };
+
+  const getDailyMeaningData = () => {
+    return dailyScores
+      .filter(s => s.life_meaning_score !== null)
+      .slice(-14)
+      .map(score => ({
+        date: new Date(score.task_date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+        'Điểm': score.life_meaning_score
+      }));
+  };
+
   const getProsocialBehaviorStats = () => {
     const behaviorCounts: Record<string, number> = {};
     dailyScores.forEach(score => {
@@ -230,14 +251,11 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       }
     });
     return Object.entries(behaviorCounts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
+      .map(([name, count]) => ({ name, value: count }))
+      .sort((a, b) => b.value - a.value);
   };
 
-  const getBehaviorColor = (index: number) => {
-    const colors = ['bg-blue-500', 'bg-teal-500', 'bg-orange-500', 'bg-rose-500', 'bg-amber-500'];
-    return colors[index % colors.length];
-  };
+  const COLORS = ['#3B82F6', '#14B8A6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
   if (loading) {
     return (
@@ -279,96 +297,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
         </div>
 
-        {dailyScores.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-              <LineChart className="w-6 h-6 text-blue-500" />
-              Biểu Đồ Sự Tiến Bộ Hàng Ngày
-            </h2>
-            <p className="text-gray-600 mb-6">Theo dõi sự phát triển của ba chỉ số chính (thang điểm 1-7)</p>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-                <h3 className="text-lg font-semibold text-blue-900 mb-4">Lòng Biết Ơn</h3>
-                <div className="space-y-2">
-                  {dailyScores.filter(s => s.gratitude_score).slice(-7).map((score, index) => (
-                    <div key={score.id} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-700">{new Date(score.task_date).toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' })}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 bg-blue-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-500" style={{ width: `${(score.gratitude_score! / 7) * 100}%` }}></div>
-                        </div>
-                        <span className="font-semibold text-blue-600 w-8 text-right">{score.gratitude_score}/7</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-4">
-                <h3 className="text-lg font-semibold text-teal-900 mb-4">Ý Nghĩa Cuộc Sống</h3>
-                <div className="space-y-2">
-                  {dailyScores.filter(s => s.life_meaning_score).slice(-7).map((score, index) => (
-                    <div key={score.id} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-700">{new Date(score.task_date).toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' })}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 bg-teal-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-teal-500" style={{ width: `${(score.life_meaning_score! / 7) * 100}%` }}></div>
-                        </div>
-                        <span className="font-semibold text-teal-600 w-8 text-right">{score.life_meaning_score}/7</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4">
-                <h3 className="text-lg font-semibold text-orange-900 mb-4">Hành Vi Ủng Hộ Xã Hội</h3>
-                <div className="space-y-2">
-                  {getProsocialBehaviorStats().slice(0, 3).map((behavior, index) => (
-                    <div key={index} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-700 truncate">{behavior.name}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 h-2 bg-orange-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-orange-500" style={{ width: `${(behavior.count / (dailyScores.length || 1)) * 100}%` }}></div>
-                        </div>
-                        <span className="font-semibold text-orange-600 w-6 text-right">{behavior.count}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {getProsocialBehaviorStats().length === 0 && (
-                    <p className="text-gray-500 text-sm">Chưa có dữ liệu</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {getProsocialBehaviorStats().length > 0 && (
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <PieChart className="w-5 h-5 text-orange-500" />
-                  Phân Bố Hành Vi Ủng Hộ Xã Hội
-                </h3>
-                <div className="flex flex-wrap gap-4">
-                  {getProsocialBehaviorStats().map((behavior, index) => {
-                    const total = dailyScores.reduce((sum, score) => sum + (score.prosocial_behavior ? 1 : 0), 0);
-                    const percentage = total > 0 ? Math.round((behavior.count / total) * 100) : 0;
-                    return (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className={`w-4 h-4 rounded-full ${getBehaviorColor(index)}`}></div>
-                        <div>
-                          <p className="text-sm font-semibold text-gray-800">{behavior.name}</p>
-                          <p className="text-xs text-gray-600">{behavior.count} lần ({percentage}%)</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
@@ -382,24 +310,30 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-teal-500" />
+              <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
+                <Target className="w-6 h-6 text-pink-500" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Điểm trung bình</h3>
-            <p className="text-3xl font-bold text-gray-800">{stats.averageScore}</p>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Lòng biết ơn</h3>
+            {stats.latestXLevel ? (
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getRiskLevelConfig(stats.latestXLevel).bgColor} ${getRiskLevelConfig(stats.latestXLevel).textColor}`}>
+                {getRiskLevelConfig(stats.latestXLevel).label}
+              </span>
+            ) : (
+              <p className="text-gray-400">Chưa có dữ liệu</p>
+            )}
           </div>
 
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <Target className="w-6 h-6 text-purple-500" />
+              <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
+                <Target className="w-6 h-6 text-teal-500" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Mức độ hiện tại</h3>
-            {stats.latestRiskLevel ? (
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getRiskLevelConfig(stats.latestRiskLevel).bgColor} ${getRiskLevelConfig(stats.latestRiskLevel).textColor}`}>
-                {getRiskLevelConfig(stats.latestRiskLevel).label}
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Hành vi xã hội</h3>
+            {stats.latestYLevel ? (
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getRiskLevelConfig(stats.latestYLevel).bgColor} ${getRiskLevelConfig(stats.latestYLevel).textColor}`}>
+                {getRiskLevelConfig(stats.latestYLevel).label}
               </span>
             ) : (
               <p className="text-gray-400">Chưa có dữ liệu</p>
@@ -409,30 +343,150 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-orange-500" />
+                <Target className="w-6 h-6 text-orange-500" />
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Tiến bộ</h3>
-            <p className={`text-3xl font-bold ${stats.improvementRate > 0 ? 'text-green-600' : stats.improvementRate < 0 ? 'text-red-600' : 'text-gray-800'}`}>
-              {stats.improvementRate > 0 ? '+' : ''}{stats.improvementRate}%
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
-                <MessageSquare className="w-6 h-6 text-pink-500" />
-              </div>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Lịch sử trò chuyện</h3>
-            <p className="text-3xl font-bold text-gray-800">{stats.totalChats}</p>
+            <h3 className="text-gray-600 text-sm font-medium mb-1">Ý nghĩa cuộc sống</h3>
+            {stats.latestMLevel ? (
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getRiskLevelConfig(stats.latestMLevel).bgColor} ${getRiskLevelConfig(stats.latestMLevel).textColor}`}>
+                {getRiskLevelConfig(stats.latestMLevel).label}
+              </span>
+            ) : (
+              <p className="text-gray-400">Chưa có dữ liệu</p>
+            )}
           </div>
         </div>
+
+        {surveys.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <LineChart className="w-6 h-6 text-blue-500" />
+              Biểu Đồ Tiến Bộ Tổng Thể (Khảo Sát Chính)
+            </h2>
+            <p className="text-gray-600 mb-6">Theo dõi sự phát triển của ba chỉ số qua các lần khảo sát</p>
+
+            <div className="mb-4 flex gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-pink-500 rounded-full"></div>
+                <span className="text-gray-600">Lòng biết ơn (Thang 1-7)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
+                <span className="text-gray-600">Hành vi xã hội (Thang 1-5)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <span className="text-gray-600">Ý nghĩa cuộc sống (Thang 1-7)</span>
+              </div>
+            </div>
+
+            <ResponsiveContainer width="100%" height={400}>
+              <RechartsLineChart data={getSurveyProgressData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis domain={[1, 7]} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="Lòng biết ơn" stroke="#EC4899" strokeWidth={3} dot={{ r: 5 }} />
+                <Line type="monotone" dataKey="Hành vi xã hội" stroke="#14B8A6" strokeWidth={3} dot={{ r: 5 }} />
+                <Line type="monotone" dataKey="Ý nghĩa cuộc sống" stroke="#F59E0B" strokeWidth={3} dot={{ r: 5 }} />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {dailyScores.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <LineChart className="w-6 h-6 text-pink-500" />
+                Lòng Biết Ơn Hàng Ngày
+              </h2>
+              <p className="text-gray-600 mb-6">Điểm số AI đánh giá (Thang 1-7) - 14 ngày gần nhất</p>
+
+              <ResponsiveContainer width="100%" height={300}>
+                <RechartsLineChart data={getDailyGratitudeData()}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis domain={[1, 7]} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="Điểm" stroke="#EC4899" strokeWidth={3} dot={{ r: 4 }} />
+                </RechartsLineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <LineChart className="w-6 h-6 text-orange-500" />
+                Ý Nghĩa Cuộc Sống Hàng Ngày
+              </h2>
+              <p className="text-gray-600 mb-6">Điểm số AI đánh giá (Thang 1-7) - 14 ngày gần nhất</p>
+
+              <ResponsiveContainer width="100%" height={300}>
+                <RechartsLineChart data={getDailyMeaningData()}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis domain={[1, 7]} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="Điểm" stroke="#F59E0B" strokeWidth={3} dot={{ r: 4 }} />
+                </RechartsLineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {getProsocialBehaviorStats().length > 0 && (
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <PieChart className="w-6 h-6 text-teal-500" />
+              Hành Vi Ủng Hộ Xã Hội Hàng Ngày
+            </h2>
+            <p className="text-gray-600 mb-6">Phân bố các hành vi được chọn nhiều nhất</p>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <ResponsiveContainer width="100%" height={300}>
+                <RechartsPieChart>
+                  <Pie
+                    data={getProsocialBehaviorStats()}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {getProsocialBehaviorStats().map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+
+              <div className="flex flex-col justify-center space-y-3">
+                {getProsocialBehaviorStats().map((behavior, index) => {
+                  const total = getProsocialBehaviorStats().reduce((sum, b) => sum + b.value, 0);
+                  const percentage = Math.round((behavior.value / total) * 100);
+                  return (
+                    <div key={index} className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full`} style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-800">{behavior.name}</p>
+                        <p className="text-xs text-gray-600">{behavior.value} lần ({percentage}%)</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
             <Calendar className="w-6 h-6 text-blue-500" />
-            Lịch Sử Khảo Sát
+            Lịch Sử Khảo Sát Chi Tiết
           </h2>
 
           {surveys.length === 0 ? (
@@ -445,10 +499,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <div className="space-y-4">
               {surveys.map((survey) => {
                 const avgScore = ((Number(survey.x_score) + Number(survey.y_score) + Number(survey.m_score)) / 3).toFixed(2);
-                const overallLevel = survey.x_level === 'Rất thấp' || survey.y_level === 'Rất thấp' || survey.m_level === 'Rất thấp' ? 'Rất thấp' :
-                                    survey.x_level === 'Thấp' || survey.y_level === 'Thấp' || survey.m_level === 'Thấp' ? 'Thấp' :
-                                    survey.x_level === 'Cao' || survey.y_level === 'Cao' || survey.m_level === 'Cao' ? 'Cao' :
-                                    survey.x_level === 'Rất cao' || survey.y_level === 'Rất cao' || survey.m_level === 'Rất cao' ? 'Rất cao' : 'Trung bình';
 
                 return (
                   <div key={survey.id} className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all">
@@ -458,9 +508,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                           <h3 className="text-lg font-bold text-gray-800">
                             Khảo sát ngày {new Date(survey.created_at).toLocaleDateString('vi-VN')}
                           </h3>
-                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getRiskLevelConfig(overallLevel).bgColor} ${getRiskLevelConfig(overallLevel).textColor}`}>
-                            {getRiskLevelConfig(overallLevel).label}
-                          </span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
                           <span className="flex items-center gap-1">
@@ -504,42 +551,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
           )}
         </div>
-
-        {surveys.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Biểu Đồ Tiến Trình</h2>
-            <div className="relative h-64">
-              <div className="absolute inset-0 flex items-end justify-around gap-2">
-                {surveys.slice(0, 10).reverse().map((survey, index) => {
-                  const score = (Number(survey.x_score) + Number(survey.y_score) + Number(survey.m_score)) / 3;
-                  const maxScore = 7;
-                  const height = (score / maxScore) * 100;
-
-                  return (
-                    <div key={survey.id} className="flex-1 flex flex-col items-center group">
-                      <div className="relative w-full flex flex-col items-center">
-                        <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                          Điểm: {score.toFixed(2)}
-                        </div>
-                        <div
-                          className="w-full bg-gradient-to-t from-blue-500 to-teal-500 rounded-t-lg transition-all hover:from-blue-600 hover:to-teal-600"
-                          style={{ height: `${height}%`, minHeight: '20px' }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-2 text-center">
-                        {new Date(survey.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600">Điểm thấp nhất: 1</p>
-              <p className="text-sm text-gray-600">Điểm cao nhất: 7</p>
-            </div>
-          </div>
-        )}
 
         {chatSessions.length > 0 && (
           <div className="bg-white rounded-2xl shadow-xl p-8">
