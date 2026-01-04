@@ -26,7 +26,7 @@ export default function ResearchPaper() {
   const [loading, setLoading] = useState(true);
 
   const JOURNAL_URL = 'https://rajournals.in/index.php/rajar/article/view/1785';
-  const PDF_DRIVE_URL = 'https://drive.google.com/file/d/YOUR_FILE_ID/view?usp=sharing';
+  const PDF_DRIVE_URL = 'https://drive.google.com/file/d/1KBfMzUBWzE3Y8y5_siMoBW41wReANhOB/view?usp=sharing';
 
   useEffect(() => {
     loadResearchContent();
