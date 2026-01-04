@@ -65,7 +65,7 @@ function App() {
         {currentPage === 'contact' && <Contact />}
         {currentPage === 'reviews' && <Reviews />}
         {currentPage === 'dashboard' && <Dashboard onNavigate={handleNavigate} />}
-        {currentPage === 'dailytasks' && <DailyTasks />}
+        {currentPage === 'dailytasks' && <DailyTasks onNavigate={handleNavigate} />}
 
         <Chatbot />
       </div>

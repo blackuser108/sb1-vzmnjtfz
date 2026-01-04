@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { BookHeart, Lightbulb, Users, Check, X } from 'lucide-react';
+import { BookHeart, Lightbulb, Users, Check, X, ArrowLeft } from 'lucide-react';
 
 interface TaskQuestion {
   id: string;
@@ -24,7 +24,11 @@ interface TaskResponse {
   checked?: boolean;
 }
 
-export default function DailyTasks() {
+interface DailyTasksProps {
+  onNavigate: (page: string) => void;
+}
+
+export default function DailyTasks({ onNavigate }: DailyTasksProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [gratitudeQuestions, setGratitudeQuestions] = useState<TaskQuestion[]>([]);
@@ -379,6 +383,14 @@ export default function DailyTasks() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
       <div className="max-w-6xl mx-auto">
+        <button
+          onClick={() => onNavigate('dashboard')}
+          className="flex items-center gap-2 text-gray-700 hover:text-gray-900 mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-semibold">Về Dashboard</span>
+        </button>
+
         <div className="text-center mb-12">
           <div className="inline-block bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
             Ngày {currentDay}/7

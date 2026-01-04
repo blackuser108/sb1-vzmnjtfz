@@ -21,14 +21,12 @@ interface SurveyData {
   id: string;
   created_at: string;
   completed_at: string;
-  user_name: string;
-  user_age: number;
-  user_grade: string;
-  result?: {
-    total_score: number;
-    risk_level: string;
-    recommendations: string[];
-  };
+  x_score: number;
+  y_score: number;
+  m_score: number;
+  x_level: string;
+  y_level: string;
+  m_level: string;
 }
 
 interface ChatSession {
@@ -82,49 +80,38 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const loadDashboardData = async () => {
     try {
       const { data: surveysData, error: surveysError } = await supabase
-        .from('surveys')
-        .select(`
-          *,
-          survey_results (
-            total_score,
-            risk_level,
-            recommendations
-          )
-        `)
+        .from('survey_responses')
+        .select('*')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (surveysError) throw surveysError;
 
-      const formattedSurveys = surveysData?.map((s: any) => ({
-        id: s.id,
-        created_at: s.created_at,
-        completed_at: s.completed_at,
-        user_name: s.user_name,
-        user_age: s.user_age,
-        user_grade: s.user_grade,
-        result: s.survey_results?.[0] || null
-      })) || [];
-
+      const formattedSurveys = surveysData || [];
       setSurveys(formattedSurveys);
 
       const totalSurveys = formattedSurveys.length;
-      const scoresArray = formattedSurveys
-        .filter((s: any) => s.result)
-        .map((s: any) => s.result.total_score);
+      const averageScores = formattedSurveys.map((s: any) =>
+        (Number(s.x_score) + Number(s.y_score) + Number(s.m_score)) / 3
+      );
 
-      const averageScore = scoresArray.length > 0
-        ? scoresArray.reduce((a: number, b: number) => a + b, 0) / scoresArray.length
+      const averageScore = averageScores.length > 0
+        ? averageScores.reduce((a: number, b: number) => a + b, 0) / averageScores.length
         : 0;
 
-      const latestResult = formattedSurveys[0]?.result;
-      const latestRiskLevel = latestResult?.risk_level || '';
+      const latestSurvey = formattedSurveys[0];
+      const latestRiskLevel = latestSurvey ?
+        (latestSurvey.x_level === 'Rất thấp' || latestSurvey.y_level === 'Rất thấp' || latestSurvey.m_level === 'Rất thấp' ? 'Rất thấp' :
+         latestSurvey.x_level === 'Thấp' || latestSurvey.y_level === 'Thấp' || latestSurvey.m_level === 'Thấp' ? 'Thấp' :
+         latestSurvey.x_level === 'Cao' || latestSurvey.y_level === 'Cao' || latestSurvey.m_level === 'Cao' ? 'Cao' :
+         latestSurvey.x_level === 'Rất cao' || latestSurvey.y_level === 'Rất cao' || latestSurvey.m_level === 'Rất cao' ? 'Rất cao' : 'Trung bình')
+        : '';
 
       let improvementRate = 0;
-      if (scoresArray.length >= 2) {
-        const firstScore = scoresArray[scoresArray.length - 1];
-        const lastScore = scoresArray[0];
-        improvementRate = ((firstScore - lastScore) / firstScore) * 100;
+      if (averageScores.length >= 2) {
+        const firstScore = averageScores[averageScores.length - 1];
+        const lastScore = averageScores[0];
+        improvementRate = ((lastScore - firstScore) / firstScore) * 100;
       }
 
       const { data: chatData, error: chatError } = await supabase
@@ -226,12 +213,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
   const getRiskLevelConfig = (level: string) => {
     const configs: any = {
-      low: { color: 'green', label: 'Thấp', bgColor: 'bg-green-100', textColor: 'text-green-700' },
-      medium: { color: 'yellow', label: 'Trung bình', bgColor: 'bg-yellow-100', textColor: 'text-yellow-700' },
-      high: { color: 'orange', label: 'Cao', bgColor: 'bg-orange-100', textColor: 'text-orange-700' },
-      critical: { color: 'red', label: 'Rất cao', bgColor: 'bg-red-100', textColor: 'text-red-700' }
+      'Rất thấp': { color: 'green', label: 'Rất thấp', bgColor: 'bg-green-100', textColor: 'text-green-700' },
+      'Thấp': { color: 'green', label: 'Thấp', bgColor: 'bg-green-100', textColor: 'text-green-700' },
+      'Trung bình': { color: 'yellow', label: 'Trung bình', bgColor: 'bg-yellow-100', textColor: 'text-yellow-700' },
+      'Cao': { color: 'orange', label: 'Cao', bgColor: 'bg-orange-100', textColor: 'text-orange-700' },
+      'Rất cao': { color: 'red', label: 'Rất cao', bgColor: 'bg-red-100', textColor: 'text-red-700' }
     };
-    return configs[level] || configs.medium;
+    return configs[level] || configs['Trung bình'];
   };
 
   const getProsocialBehaviorStats = () => {
@@ -455,62 +443,64 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              {surveys.map((survey) => (
-                <div key={survey.id} className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-bold text-gray-800">
-                          Khảo sát ngày {new Date(survey.created_at).toLocaleDateString('vi-VN')}
-                        </h3>
-                        {survey.result && (
-                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getRiskLevelConfig(survey.result.risk_level).bgColor} ${getRiskLevelConfig(survey.result.risk_level).textColor}`}>
-                            {getRiskLevelConfig(survey.result.risk_level).label}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {new Date(survey.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <User className="w-4 h-4" />
-                          {survey.user_name}
-                        </span>
-                      </div>
-                    </div>
-                    {survey.result && (
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600 mb-1">Điểm số</p>
-                        <p className="text-3xl font-bold text-blue-600">{survey.result.total_score}</p>
-                      </div>
-                    )}
-                  </div>
+              {surveys.map((survey) => {
+                const avgScore = ((Number(survey.x_score) + Number(survey.y_score) + Number(survey.m_score)) / 3).toFixed(2);
+                const overallLevel = survey.x_level === 'Rất thấp' || survey.y_level === 'Rất thấp' || survey.m_level === 'Rất thấp' ? 'Rất thấp' :
+                                    survey.x_level === 'Thấp' || survey.y_level === 'Thấp' || survey.m_level === 'Thấp' ? 'Thấp' :
+                                    survey.x_level === 'Cao' || survey.y_level === 'Cao' || survey.m_level === 'Cao' ? 'Cao' :
+                                    survey.x_level === 'Rất cao' || survey.y_level === 'Rất cao' || survey.m_level === 'Rất cao' ? 'Rất cao' : 'Trung bình';
 
-                  {survey.result && survey.result.recommendations.length > 0 && (
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                        <Award className="w-5 h-5 text-blue-500" />
-                        Khuyến nghị
-                      </h4>
-                      <ul className="space-y-2">
-                        {survey.result.recommendations.slice(0, 2).map((rec, index) => (
-                          <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
-                            <span className="text-blue-500 mt-1">•</span>
-                            <span>{rec}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      {survey.result.recommendations.length > 2 && (
-                        <p className="text-sm text-blue-600 mt-2">
-                          +{survey.result.recommendations.length - 2} khuyến nghị khác
-                        </p>
-                      )}
+                return (
+                  <div key={survey.id} className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-bold text-gray-800">
+                            Khảo sát ngày {new Date(survey.created_at).toLocaleDateString('vi-VN')}
+                          </h3>
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getRiskLevelConfig(overallLevel).bgColor} ${getRiskLevelConfig(overallLevel).textColor}`}>
+                            {getRiskLevelConfig(overallLevel).label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {new Date(survey.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600 mb-1">Điểm trung bình</p>
+                        <p className="text-3xl font-bold text-blue-600">{avgScore}</p>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    <div className="grid grid-cols-3 gap-4 bg-gray-50 rounded-lg p-4">
+                      <div>
+                        <p className="text-xs text-gray-600 mb-1">Lòng biết ơn</p>
+                        <p className="text-lg font-bold text-gray-800">{survey.x_score}</p>
+                        <span className={`text-xs px-2 py-1 rounded-full ${getRiskLevelConfig(survey.x_level).bgColor} ${getRiskLevelConfig(survey.x_level).textColor}`}>
+                          {survey.x_level}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600 mb-1">Hành vi xã hội</p>
+                        <p className="text-lg font-bold text-gray-800">{survey.y_score}</p>
+                        <span className={`text-xs px-2 py-1 rounded-full ${getRiskLevelConfig(survey.y_level).bgColor} ${getRiskLevelConfig(survey.y_level).textColor}`}>
+                          {survey.y_level}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600 mb-1">Ý nghĩa cuộc sống</p>
+                        <p className="text-lg font-bold text-gray-800">{survey.m_score}</p>
+                        <span className={`text-xs px-2 py-1 rounded-full ${getRiskLevelConfig(survey.m_level).bgColor} ${getRiskLevelConfig(survey.m_level).textColor}`}>
+                          {survey.m_level}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -521,15 +511,15 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <div className="relative h-64">
               <div className="absolute inset-0 flex items-end justify-around gap-2">
                 {surveys.slice(0, 10).reverse().map((survey, index) => {
-                  const score = survey.result?.total_score || 0;
-                  const maxScore = 60;
+                  const score = (Number(survey.x_score) + Number(survey.y_score) + Number(survey.m_score)) / 3;
+                  const maxScore = 7;
                   const height = (score / maxScore) * 100;
 
                   return (
                     <div key={survey.id} className="flex-1 flex flex-col items-center group">
                       <div className="relative w-full flex flex-col items-center">
                         <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                          Điểm: {score}
+                          Điểm: {score.toFixed(2)}
                         </div>
                         <div
                           className="w-full bg-gradient-to-t from-blue-500 to-teal-500 rounded-t-lg transition-all hover:from-blue-600 hover:to-teal-600"
@@ -545,8 +535,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               </div>
             </div>
             <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600">Điểm thấp nhất: 0</p>
-              <p className="text-sm text-gray-600">Điểm cao nhất: 60</p>
+              <p className="text-sm text-gray-600">Điểm thấp nhất: 1</p>
+              <p className="text-sm text-gray-600">Điểm cao nhất: 7</p>
             </div>
           </div>
         )}
