@@ -1,0 +1,21 @@
+Bảng 4.1.2. Thực trạng hành vi ủng hộ xã hội (PSA)
+
+STT | Phát biểu biểu hiện hành vi | Min | Max | Mean (M) | SD
+1   | Tôi vui vẻ giúp đỡ bạn bè/đồng nghiệp trong các hoạt động của họ. | 1 | 5 | 3.78 | 0.810
+2   | Tôi chia sẻ niềm vui và nỗi buồn với bạn bè của mình. | 1 | 5 | 3.32 | 0.798
+3   | Tôi sẵn lòng tham gia các hoạt động để giúp đỡ người khác. | 1 | 5 | 3.57 | 0.821
+4   | Tôi thông cảm với những người đang gặp hoàn cảnh khó khăn. | 1 | 5 | 3.83 | 0.910
+5   | Tôi sẵn lòng chia sẻ đồ dùng cá nhân với những người cần giúp đỡ. | 1 | 5 | 3.38 | 0.822
+6   | Tôi ngay lập tức nhận ra sự khó chịu của người khác. | 1 | 5 | 3.42 | 0.861
+7   | Tôi an ủi người khác khi họ buồn. | 1 | 5 | 4.05 | 0.950
+8   | Tôi cố gắng thấu hiểu hoàn cảnh của người khác. | 1 | 5 | 3.63 | 0.845
+9   | Tôi sẵn lòng chia sẻ những gì mình có với người khác. | 1 | 5 | 3.52 | 0.937
+10  | Tôi quan tâm đến cảm xúc của người khác. | 1 | 5 | 3.74 | 0.804
+11  | Tôi cố gắng khích lệ những người đang buồn. | 1 | 5 | 3.74 | 0.861
+12  | Tôi trân trọng những người luôn sẵn lòng giúp đỡ người khác. | 1 | 5 | 3.48 | 0.907
+13  | Tôi cảm thấy hạnh phúc khi có thể hỗ trợ người khác. | 1 | 5 | 3.57 | 0.837
+14  | Tôi dễ dàng cho người khác mượn tiền hoặc đồ dùng. | 1 | 5 | 2.98 | 1.120
+15  | Tôi thường xuyên suy nghĩ về việc giúp đỡ người khác trong khả năng. | 1 | 5 | 3.63 | 0.877
+16  | Tôi cảm thấy giúp đỡ người khác là một phần quan trọng của cuộc sống. | 1 | 5 | 3.62 | 0.877
+
+Tổng | Trung bình chung hành vi ủng hộ xã hội | 1 | 5 | 3.62 | 0.79

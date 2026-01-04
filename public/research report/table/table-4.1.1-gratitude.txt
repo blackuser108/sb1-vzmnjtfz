@@ -1,0 +1,10 @@
+Bảng 4.1.1. Thực trạng Lòng biết ơn (GQ-6)
+
+STT | Nội dung khảo sát | Min | Max | Mean (M) | SD | Diễn giải
+1   | Tôi thấy biết ơn rất nhiều điều trong cuộc sống. | 1 | 7 | 4.98 | 1.538 | Mức độ biết ơn tương đối cao
+2   | Nếu phải liệt kê tất cả những điều tôi thấy biết ơn, danh sách đó sẽ rất dài. | 1 | 7 | 4.87 | 1.440 | Nhận thức sâu sắc về lòng biết ơn
+3   | Khi nhìn thế giới này, tôi thấy không có nhiều thứ đáng để biết ơn. (Câu đảo ngược) | 1 | 7 | 4.71 | 1.651 | Xu hướng trung bình (đã đảo điểm)
+4   | Tôi biết ơn rất nhiều người khác nhau trong cuộc đời mình. | 1 | 7 | 4.99 | 1.458 | Lòng biết ơn hướng tới con người
+5   | Càng lớn, tôi càng thấy trân trọng những người, sự kiện và hoàn cảnh đã là một phần của lịch sử cuộc đời mình. | 1 | 7 | 4.99 | 1.521 | Thể hiện sự trưởng thành trong cảm xúc
+6   | Tôi phải mất một thời gian dài mới thấy biết ơn ai đó hoặc điều gì đó. (Câu đảo ngược) | 1 | 7 | 3.68 | 1.377 | Điểm thấp phản ánh xu hướng biết ơn trực tiếp
+Tổng | Điểm trung bình chung toàn thang đo | 1 | 7 | 4.87 | 1.51 | Mức trung bình cao

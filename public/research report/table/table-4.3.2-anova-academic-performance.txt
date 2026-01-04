@@ -1,0 +1,6 @@
+Bảng 4.3.2. Tóm tắt kết quả so sánh theo nhóm Học lực (ANOVA)
+
+Biến phụ thuộc         | Giá trị F | Ý nghĩa (Sig.) | Kết luận           | Thứ tự điểm trung bình
+Lòng biết ơn           | 2.812     | 0.061           | Không khác biệt    | TB (4.08) < Khá (4.46) < Giỏi (4.75)
+Hành vi ủng hộ xã hội  | 1.956     | 0.143           | Không khác biệt    | TB (3.10) < Khá (3.46) < Giỏi (3.53)
+Ý nghĩa cuộc sống      | 4.129     | 0.017           | Có khác biệt       | TB (3.46) < Khá (4.50) < Giỏi (4.71)

@@ -1,0 +1,6 @@
+Bảng 4.2.3. Tóm tắt kết quả kiểm định mô hình trung gian (Baron & Kenny, 1986)
+
+Bước   | Phương trình hồi quy                  | Hệ số β chuẩn hóa           | Ý nghĩa (p) | Kết luận
+1      | PSA (Y) ~ Lòng biết ơn (X)            | β = 0.376                   | p < .001    | X ảnh hưởng đến Y
+2      | MIL (M) ~ Lòng biết ơn (X)            | β = 0.299                   | p < .001    | X ảnh hưởng đến M
+3      | Y ~ X + M                             | β_X = 0.291; β_M = 0.283    | p < .001    | Trung gian một phần

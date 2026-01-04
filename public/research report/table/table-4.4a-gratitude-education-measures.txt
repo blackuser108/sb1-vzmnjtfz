@@ -1,0 +1,8 @@
+Bảng 4.4a. Mức độ cần thiết của các biện pháp giáo dục lòng biết ơn
+
+Nội dung biện pháp                            | Không cần | Ít cần | Cần   | Rất cần | Mean | SD   | Hạng
+1. Chủ động thể hiện lòng biết ơn            | 1.6%      | 3.1%   | 54.7% | 40.6%   | 3.35 | 0.602 | 2
+2. Nhà trường tổ chức trải nghiệm            | 0%        | 9.4%   | 51.6% | 39.0%   | 3.30 | 0.650 | 3
+3. Tự học gương điển hình                     | 1.6%      | 7.8%   | 50.0% | 40.6%   | 3.30 | 0.675 | 4
+4. Giáo viên lồng ghép bài giảng              | 0%        | 6.3%   | 53.1% | 40.6%   | 3.34 | 0.620 | 2
+5. Gia đình làm gương khuyến khích           | 0%        | 1.6%   | 38.0% | 60.4%   | 3.59 | 0.520 | 1

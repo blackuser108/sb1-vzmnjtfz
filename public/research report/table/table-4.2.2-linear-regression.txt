@@ -1,0 +1,7 @@
+Bảng 4.2.2. Kết quả hồi quy tuyến tính: Ảnh hưởng của Ý nghĩa cuộc sống đến Hành vi hướng xã hội
+
+Biến độc lập               | R²    | Hệ số β | SE    | t     | p
+Sự hiện diện của ý nghĩa  | 0.197 | 0.292   | 0.102 | 4.97  | <0.01
+Sự tìm kiếm ý nghĩa       | 0.229 | 0.099   | 0.099 | 3.89  | <0.01
+
+Biến phụ thuộc: Hành vi ủng hộ xã hội

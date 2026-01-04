@@ -1,0 +1,6 @@
+Bảng 4.2.1. Ma trận tương quan giữa các biến
+
+Biến số                      | Lòng biết ơn         | Hành vi ủng hộ xã hội (PSA) | Ý nghĩa cuộc sống (MIL)
+Lòng biết ơn                | 1                     | 0.376 (p < .001)             | 0.299 (p < .001)
+Hành vi ủng hộ xã hội (PSA) | 0.376 (p < .001)      | 1                            | 0.371 (p < .001)
+Ý nghĩa cuộc sống (MIL)     | 0.299 (p < .001)      | 0.371 (p < .001)             | 1

@@ -1,0 +1,8 @@
+Bảng 4.1.3. Phân loại mức độ hiện diện và tìm kiếm ý nghĩa cuộc sống (MIL)
+
+Phân loại MIL                          | Số lượng (N = 406) | Tỷ lệ (%)
+Hiện diện cao, Tìm kiếm cao           | 135                | 33.3
+Hiện diện cao, Tìm kiếm thấp          | 68                 | 16.7
+Hiện diện thấp, Tìm kiếm cao          | 67                 | 16.5
+Hiện diện thấp, Tìm kiếm thấp         | 136                | 33.5
+Tổng cộng                              | 406                | 100.0

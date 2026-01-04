@@ -1,0 +1,6 @@
+Bảng 4.3.1. Tóm tắt kết quả so sánh theo nhóm giới tính (ANOVA)
+
+Biến phụ thuộc             | Giá trị F | Ý nghĩa (Sig.) | Kết luận           | Điểm TB (Nam – Nữ)
+Lòng biết ơn              | 3.215     | 0.074           | Không khác biệt    | 4.35 – 4.60
+Hành vi ủng hộ xã hội     | 5.472     | 0.020           | Có khác biệt       | 3.20 < 3.58
+Ý nghĩa cuộc sống         | 1.981     | 0.160           | Không khác biệt    | 4.32 – 4.51

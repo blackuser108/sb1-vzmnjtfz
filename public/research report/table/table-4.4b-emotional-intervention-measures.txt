@@ -1,0 +1,8 @@
+Bảng 4.4b. Mức độ cần thiết của các biện pháp can thiệp tâm lý – cảm xúc
+
+Nội dung biện pháp                          | Không cần (%) | Ít cần (%) | Cần (%) | Rất cần (%) | Mean | SD    | Hạng
+1. Thực hành "Đếm những điều hạnh phúc"    | 0.8           | 3.1        | 42.6    | 53.5         | 3.49 | 0.601 | 2
+2. Áp dụng mô hình CASEL                   | 0.8           | 6.6        | 49.2    | 43.4         | 3.36 | 0.658 | 3
+3. Mô hình điều chỉnh cảm xúc của Gross    | 0.0           | 3.3        | 40.6    | 56.1         | 3.53 | 0.574 | 1
+
+Tổng cộng trung bình                       | —             | —          | —       | —            | 3.46 | —     | —

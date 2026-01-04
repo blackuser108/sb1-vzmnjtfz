@@ -1,0 +1,6 @@
+Bảng 4.3.3. Tóm tắt kết quả phân tích ANOVA theo Khối lớp
+
+Biến phụ thuộc              | Giá trị F | Ý nghĩa (Sig.) | Kết luận         | Điểm TB (Lớp 10 – 11 – 12)
+Lòng biết ơn               | 24.860    | 0.000           | Rất khác biệt    | 3.88 – 3.86 – 4.28
+Hành vi ủng hộ xã hội      | 5.561     | 0.004           | Có khác biệt     | 3.72 – 3.77 – 4.05
+Ý nghĩa cuộc sống          | 7.544     | 0.001           | Có khác biệt     | 3.93 – 3.89 – 4.24
