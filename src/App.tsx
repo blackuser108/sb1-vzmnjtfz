@@ -12,8 +12,9 @@ import Handbook from './pages/Handbook';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import DailyTasks from './pages/DailyTasks';
+import ResearchPaper from './pages/ResearchPaper';
 
-type Page = 'home' | 'survey' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook' | 'auth' | 'dashboard' | 'dailytasks';
+type Page = 'home' | 'survey' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook' | 'auth' | 'dashboard' | 'dailytasks' | 'research';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -62,6 +63,7 @@ function App() {
         )}
         {currentPage === 'about' && <About />}
         {currentPage === 'handbook' && <Handbook onNavigate={handleNavigate} />}
+        {currentPage === 'research' && <ResearchPaper />}
         {currentPage === 'contact' && <Contact />}
         {currentPage === 'reviews' && <Reviews />}
         {currentPage === 'dashboard' && <Dashboard onNavigate={handleNavigate} />}

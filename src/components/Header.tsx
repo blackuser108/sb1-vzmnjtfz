@@ -1,4 +1,4 @@
-import { Menu, X, Mail, House, Info, Star, Headset, Book, Speaker, LogOut, User as UserIcon, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Mail, House, Info, Star, Headset, Book, Speaker, LogOut, User as UserIcon, LayoutDashboard, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -16,6 +16,7 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
     { id: 'home', label: 'Trang chủ', icon: House },
     { id: 'about', label: 'Giới thiệu', icon: Info },
     { id: 'handbook', label: 'Cẩm nang', icon: Book },
+    { id: 'research', label: 'Bài báo KH', icon: FileText },
     { id: 'reviews', label: 'Đánh giá', icon: Star },
     { id: 'contact', label: 'Liên hệ', icon: Headset }
   ];
