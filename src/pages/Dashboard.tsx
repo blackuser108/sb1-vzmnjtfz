@@ -12,7 +12,9 @@ import {
   Target,
   MessageSquare,
   Trash2,
-  CheckCircle2
+  CheckCircle2,
+  LineChart,
+  PieChart
 } from 'lucide-react';
 
 interface SurveyData {
@@ -43,6 +45,14 @@ interface ChatMessage {
   created_at: string;
 }
 
+interface DailyScore {
+  id: string;
+  task_date: string;
+  gratitude_score: number | null;
+  life_meaning_score: number | null;
+  prosocial_behavior: string | null;
+}
+
 interface DashboardProps {
   onNavigate: (page: string) => void;
 }
@@ -54,6 +64,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [selectedSession, setSelectedSession] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [dailyTasksCompleted, setDailyTasksCompleted] = useState(0);
+  const [dailyScores, setDailyScores] = useState<DailyScore[]>([]);
   const [stats, setStats] = useState({
     totalSurveys: 0,
     averageScore: 0,
@@ -143,6 +154,16 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
       setChatSessions(sessions);
 
+      const { data: scoresData, error: scoresError } = await supabase
+        .from('daily_scores')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('task_date', { ascending: true });
+
+      if (!scoresError && scoresData) {
+        setDailyScores(scoresData);
+      }
+
       const today = new Date().toISOString().split('T')[0];
       const { data: tasksData, error: tasksError } = await supabase
         .from('daily_tasks')
@@ -213,6 +234,23 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return configs[level] || configs.medium;
   };
 
+  const getProsocialBehaviorStats = () => {
+    const behaviorCounts: Record<string, number> = {};
+    dailyScores.forEach(score => {
+      if (score.prosocial_behavior) {
+        behaviorCounts[score.prosocial_behavior] = (behaviorCounts[score.prosocial_behavior] || 0) + 1;
+      }
+    });
+    return Object.entries(behaviorCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  };
+
+  const getBehaviorColor = (index: number) => {
+    const colors = ['bg-blue-500', 'bg-teal-500', 'bg-orange-500', 'bg-rose-500', 'bg-amber-500'];
+    return colors[index % colors.length];
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 flex items-center justify-center">
@@ -252,6 +290,96 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
           </div>
         </div>
+
+        {dailyScores.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <LineChart className="w-6 h-6 text-blue-500" />
+              Biểu Đồ Sự Tiến Bộ Hàng Ngày
+            </h2>
+            <p className="text-gray-600 mb-6">Theo dõi sự phát triển của ba chỉ số chính (thang điểm 1-7)</p>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-blue-900 mb-4">Lòng Biết Ơn</h3>
+                <div className="space-y-2">
+                  {dailyScores.filter(s => s.gratitude_score).slice(-7).map((score, index) => (
+                    <div key={score.id} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700">{new Date(score.task_date).toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' })}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 h-2 bg-blue-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-blue-500" style={{ width: `${(score.gratitude_score! / 7) * 100}%` }}></div>
+                        </div>
+                        <span className="font-semibold text-blue-600 w-8 text-right">{score.gratitude_score}/7</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-teal-900 mb-4">Ý Nghĩa Cuộc Sống</h3>
+                <div className="space-y-2">
+                  {dailyScores.filter(s => s.life_meaning_score).slice(-7).map((score, index) => (
+                    <div key={score.id} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700">{new Date(score.task_date).toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' })}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 h-2 bg-teal-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-teal-500" style={{ width: `${(score.life_meaning_score! / 7) * 100}%` }}></div>
+                        </div>
+                        <span className="font-semibold text-teal-600 w-8 text-right">{score.life_meaning_score}/7</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-orange-900 mb-4">Hành Vi Ủng Hộ Xã Hội</h3>
+                <div className="space-y-2">
+                  {getProsocialBehaviorStats().slice(0, 3).map((behavior, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700 truncate">{behavior.name}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-2 bg-orange-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-orange-500" style={{ width: `${(behavior.count / (dailyScores.length || 1)) * 100}%` }}></div>
+                        </div>
+                        <span className="font-semibold text-orange-600 w-6 text-right">{behavior.count}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {getProsocialBehaviorStats().length === 0 && (
+                    <p className="text-gray-500 text-sm">Chưa có dữ liệu</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {getProsocialBehaviorStats().length > 0 && (
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <PieChart className="w-5 h-5 text-orange-500" />
+                  Phân Bố Hành Vi Ủng Hộ Xã Hội
+                </h3>
+                <div className="flex flex-wrap gap-4">
+                  {getProsocialBehaviorStats().map((behavior, index) => {
+                    const total = dailyScores.reduce((sum, score) => sum + (score.prosocial_behavior ? 1 : 0), 0);
+                    const percentage = total > 0 ? Math.round((behavior.count / total) * 100) : 0;
+                    return (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className={`w-4 h-4 rounded-full ${getBehaviorColor(index)}`}></div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">{behavior.name}</p>
+                          <p className="text-xs text-gray-600">{behavior.count} lần ({percentage}%)</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-2xl shadow-lg p-6">

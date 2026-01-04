@@ -168,6 +168,34 @@ export default function DailyTasks() {
 
       if (responseError) throw responseError;
 
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (token) {
+        const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/score-daily-tasks`;
+        const formattedResponses = Object.values(responses).map(resp => ({
+          questionId: resp.question_id,
+          responseText: resp.response_text || '',
+          responseValue: resp.response_value
+        }));
+
+        try {
+          await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              taskDate: today,
+              taskType: activeTask,
+              responses: formattedResponses
+            })
+          });
+        } catch (scoringError) {
+          console.error('Error calling AI scoring function:', scoringError);
+        }
+      }
+
       await loadData();
       setActiveTask(null);
       setResponses({});
