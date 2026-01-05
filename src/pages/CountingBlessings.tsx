@@ -163,7 +163,7 @@ export default function CountingBlessings() {
           <div className="mt-6 space-y-6">
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <span className="w-10 h-10 bg-green-500 text-white flex items-center justify-center rounded-full font-bold text-sm">Bước 1</span>
+                <span className="w-12 h-12 bg-green-500 text-white flex items-center justify-center rounded-full font-bold text-sm">Bước 1</span>
                 Đăng Ký Và Truy Cập Google Form
               </h3>
               <ul className="space-y-2 text-gray-700 ml-10">
