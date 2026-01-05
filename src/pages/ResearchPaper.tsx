@@ -357,7 +357,7 @@ export default function ResearchPaper() {
               <BookOpen className="w-7 h-7 text-blue-600" />
               <div>
                 <span className="text-xl font-bold text-gray-900">Bài Báo Khoa Học</span>
-                <p className="text-sm text-gray-600 mt-0.5">Giao diện accordion tương tác</p>
+                <p className="text-sm text-gray-600 mt-0.5"></p>
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
