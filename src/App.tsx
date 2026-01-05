@@ -13,8 +13,9 @@ import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import DailyTasks from './pages/DailyTasks';
 import ResearchPaper from './pages/ResearchPaper';
+import CountingBlessings from './pages/CountingBlessings';
 
-type Page = 'home' | 'survey' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook' | 'auth' | 'dashboard' | 'dailytasks' | 'research';
+type Page = 'home' | 'survey' | 'result' | 'about' | 'contact' | 'reviews' | 'handbook' | 'auth' | 'dashboard' | 'dailytasks' | 'research' | 'counting-blessings';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -68,6 +69,7 @@ function App() {
         {currentPage === 'reviews' && <Reviews />}
         {currentPage === 'dashboard' && <Dashboard onNavigate={handleNavigate} />}
         {currentPage === 'dailytasks' && <DailyTasks onNavigate={handleNavigate} />}
+        {currentPage === 'counting-blessings' && <CountingBlessings />}
 
         <Chatbot />
       </div>

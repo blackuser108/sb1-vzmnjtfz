@@ -1,7 +1,7 @@
 import { ExternalLink, BookOpen, Lightbulb, FileCheck, Sparkles } from 'lucide-react';
 
 export default function CountingBlessings() {
-  const googleFormUrl = 'https://forms.gle/YOUR_FORM_ID'; // Thay thế bằng link Google Form thực tế
+  const googleFormUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSepySlho2Gw_hY3I5porZuzC23a55pVTawbgG1xKK5knqdcPQ/viewform?usp=embed_facebook';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-12 px-4">
