@@ -1,9 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
-import { FileText, Download, ExternalLink, BookOpen, Menu, X } from 'lucide-react';
-import CollapsibleMenu from '../components/CollapsibleMenu';
-import ContentSection from '../components/ContentSection';
-import { researchStructure } from '../data/researchStructure';
-import { parseContent, ContentSection as ContentSectionType } from '../utils/parseContent';
+import { useEffect, useState } from 'react';
+import { FileText, Download, ExternalLink, BookOpen } from 'lucide-react';
+import Accordion from '../components/Accordion';
 
 interface ResearchContent {
   title: string;
@@ -19,20 +16,16 @@ interface ResearchContent {
   references: string;
 }
 
-interface TableData {
-  name: string;
-  content: string;
+interface AccordionItemProps {
+  id: string;
+  title: string;
+  children: React.ReactNode;
 }
 
 export default function ResearchPaper() {
   const [content, setContent] = useState<ResearchContent | null>(null);
-  const [tables, setTables] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
-  const [activeSection, setActiveSection] = useState('abstract');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [parsedSections, setParsedSections] = useState<Record<string, ContentSectionType[]>>({});
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [accordionItems, setAccordionItems] = useState<AccordionItemProps[]>([]);
 
   const JOURNAL_URL = 'https://rajournals.in/index.php/rajar/article/view/1785';
   const PDF_DRIVE_URL = 'https://drive.google.com/file/d/1KBfMzUBWzE3Y8y5_siMoBW41wReANhOB/view?usp=sharing';
@@ -65,26 +58,6 @@ export default function ResearchPaper() {
   useEffect(() => {
     loadResearchContent();
   }, []);
-
-  const handleToggleSection = (id: string) => {
-    const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedSections(newExpanded);
-  };
-
-  const handleSelectSection = (id: string) => {
-    setActiveSection(id);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setMobileMenuOpen(false);
-    }
-  };
-
 
   const loadResearchContent = async () => {
     try {
@@ -145,18 +118,12 @@ export default function ResearchPaper() {
       };
       setContent(contentObj);
 
-      const parsed: Record<string, ContentSectionType[]> = {
-        theoretical: parseContent(contentObj.theoretical, 'theoretical'),
-        methodology: parseContent(contentObj.methodology, 'methodology'),
-        results: parseContent(contentObj.results, 'results')
-      };
-      setParsedSections(parsed);
-
       const tablesMap: Record<string, string> = {};
       tablesData.forEach(table => {
         tablesMap[table.name] = table.content;
       });
-      setTables(tablesMap);
+
+      createAccordionItems(contentObj, tablesMap);
     } catch (error) {
       console.error('Error loading research content:', error);
     } finally {
@@ -177,7 +144,7 @@ export default function ResearchPaper() {
     return { tableName, headers, rows };
   };
 
-  const renderContentWithMedia = (text: string, section: string) => {
+  const renderContentWithMedia = (text: string, tablesMap: Record<string, string>) => {
     const lines = text.split('\n');
     const elements: JSX.Element[] = [];
     let currentParagraph: string[] = [];
@@ -187,7 +154,7 @@ export default function ResearchPaper() {
       if (currentParagraph.length > 0) {
         const paragraphText = currentParagraph.join('\n');
         elements.push(
-          <p key={`p-${key++}`} className="text-gray-700 leading-relaxed mb-4 text-justify whitespace-pre-line">
+          <p key={`p-${key++}`} className="mb-4 text-justify whitespace-pre-line">
             {paragraphText}
           </p>
         );
@@ -195,7 +162,7 @@ export default function ResearchPaper() {
       }
     };
 
-    lines.forEach((line, index) => {
+    lines.forEach((line) => {
       let matched = false;
 
       Object.entries(TABLE_MARKERS).forEach(([marker, tableKey]) => {
@@ -203,12 +170,12 @@ export default function ResearchPaper() {
           matched = true;
           flushParagraph();
 
-          const tableContent = tables[tableKey];
+          const tableContent = tablesMap[tableKey];
           if (tableContent) {
             const parsed = parseTable(tableContent);
             if (parsed) {
               elements.push(
-                <div key={`table-${key++}`} className="my-8 overflow-x-auto">
+                <div key={`table-${key++}`} className="my-6 overflow-x-auto">
                   <p className="text-center font-semibold text-gray-800 mb-4">
                     {parsed.tableName}
                   </p>
@@ -255,7 +222,7 @@ export default function ResearchPaper() {
           flushParagraph();
 
           elements.push(
-            <div key={`img-${key++}`} className="my-8">
+            <div key={`img-${key++}`} className="my-6">
               <img
                 src={imageData.src}
                 alt={imageData.caption}
@@ -280,12 +247,94 @@ export default function ResearchPaper() {
     return elements;
   };
 
+  const createAccordionItems = (
+    contentObj: ResearchContent,
+    tablesMap: Record<string, string>
+  ) => {
+    const items: AccordionItemProps[] = [
+      {
+        id: 'abstract',
+        title: 'Tóm tắt',
+        children: (
+          <div className="whitespace-pre-line text-justify space-y-3">
+            {contentObj.abstract}
+          </div>
+        )
+      },
+      {
+        id: 'keywords',
+        title: 'Từ khóa',
+        children: (
+          <div className="italic space-y-3">
+            {contentObj.keywords}
+          </div>
+        )
+      },
+      {
+        id: 'introduction',
+        title: '1. Giới thiệu',
+        children: (
+          <div className="space-y-4">
+            {renderContentWithMedia(contentObj.introduction, tablesMap)}
+          </div>
+        )
+      },
+      {
+        id: 'theoretical',
+        title: '2. Cơ sở lý thuyết',
+        children: (
+          <div className="space-y-4">
+            {renderContentWithMedia(contentObj.theoretical, tablesMap)}
+          </div>
+        )
+      },
+      {
+        id: 'methodology',
+        title: '3. Phương pháp nghiên cứu',
+        children: (
+          <div className="space-y-4">
+            {renderContentWithMedia(contentObj.methodology, tablesMap)}
+          </div>
+        )
+      },
+      {
+        id: 'results',
+        title: '4. Kết quả nghiên cứu',
+        children: (
+          <div className="space-y-4">
+            {renderContentWithMedia(contentObj.results, tablesMap)}
+          </div>
+        )
+      },
+      {
+        id: 'conclusion',
+        title: '5. Kết luận',
+        children: (
+          <div className="space-y-4">
+            {renderContentWithMedia(contentObj.conclusion, tablesMap)}
+          </div>
+        )
+      },
+      {
+        id: 'references',
+        title: 'Tài liệu tham khảo',
+        children: (
+          <div className="whitespace-pre-line text-justify text-sm space-y-3">
+            {contentObj.references}
+          </div>
+        )
+      }
+    ];
+
+    setAccordionItems(items);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải bài báo khoa học...</p>
+          <p className="text-gray-600 font-medium">Đang tải bài báo khoa học...</p>
         </div>
       </div>
     );
@@ -293,27 +342,30 @@ export default function ResearchPaper() {
 
   if (!content) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">Không thể tải nội dung bài báo</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <p className="text-gray-600 font-medium">Không thể tải nội dung bài báo</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="bg-white shadow-md border-b sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 py-5">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-6 h-6 text-blue-600" />
-              <span className="text-lg font-semibold text-gray-800">Bài Báo Khoa Học</span>
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-7 h-7 text-blue-600" />
+              <div>
+                <span className="text-xl font-bold text-gray-900">Bài Báo Khoa Học</span>
+                <p className="text-sm text-gray-600 mt-0.5">Giao diện accordion tương tác</p>
+              </div>
             </div>
             <div className="flex flex-wrap gap-3">
               <a
                 href={JOURNAL_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all hover:shadow-lg text-sm font-medium"
               >
                 <ExternalLink className="w-4 h-4" />
                 <span className="hidden sm:inline">Xem trên tạp chí</span>
@@ -323,7 +375,7 @@ export default function ResearchPaper() {
                 href={PDF_DRIVE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm"
+                className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all hover:shadow-lg text-sm font-medium"
               >
                 <Download className="w-4 h-4" />
                 Tải PDF
@@ -333,162 +385,49 @@ export default function ResearchPaper() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex gap-8">
-          <div className="hidden lg:block w-80 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-24">
-              <h3 className="font-bold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                <Menu className="w-5 h-5 text-blue-600" />
-                Mục lục
-              </h3>
-              <div className="space-y-1 max-h-96 overflow-y-auto pr-2">
-                <CollapsibleMenu
-                  sections={researchStructure}
-                  expandedSections={expandedSections}
-                  onToggleSection={handleToggleSection}
-                  onSelectSection={handleSelectSection}
-                  activeSection={activeSection}
-                />
-              </div>
+      <div className="max-w-5xl mx-auto px-4 py-12">
+        <div className="mb-12">
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-8 md:p-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8 text-center leading-tight">
+              {content.title}
+            </h1>
+
+            <div className="text-center mb-8">
+              <p className="text-lg text-gray-700 whitespace-pre-line font-medium">
+                {content.authors}
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-r-lg">
+              <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                {content.international}
+              </p>
             </div>
           </div>
+        </div>
 
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden mb-4 flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200 hover:bg-gray-50"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            <span>Mục lục</span>
-          </button>
+        <div className="space-y-8">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="h-1 w-12 bg-blue-600 rounded"></div>
+            <h2 className="text-2xl font-bold text-gray-900">Nội dung bài báo</h2>
+          </div>
 
-          {mobileMenuOpen && (
-            <div className="lg:hidden mb-6 bg-white rounded-lg shadow-sm border p-6">
-              <CollapsibleMenu
-                sections={researchStructure}
-                expandedSections={expandedSections}
-                onToggleSection={handleToggleSection}
-                onSelectSection={handleSelectSection}
-                activeSection={activeSection}
-              />
-            </div>
-          )}
+          <Accordion
+            items={accordionItems}
+            allowMultiple={true}
+            defaultOpenId="abstract"
+          />
+        </div>
 
-          <div className="flex-1 min-w-0" ref={contentRef}>
-            <div className="bg-gradient-to-r from-blue-50 to-teal-50 border-l-4 border-blue-600 rounded-r-lg p-6 mb-8 shadow-sm">
-              <div className="flex items-start gap-3">
-                <FileText className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2 text-lg">Về bản dịch này</h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    Đây là bản dịch tiếng Việt của bài báo khoa học đã được công bố trên tạp chí quốc tế.
-                    Nội dung được dịch và trình bày nhằm phục vụ mục đích giáo dục và nghiên cứu.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <article className="bg-white rounded-lg shadow-sm border">
-              <div className="p-8 md:p-12 border-b">
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight text-center">
-                  {content.title}
-                </h1>
-
-                <div className="text-center mb-6">
-                  <p className="text-lg text-gray-700 whitespace-pre-line">{content.authors}</p>
-                </div>
-
-                <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r">
-                  <p className="text-sm text-gray-700 whitespace-pre-line">{content.international}</p>
-                </div>
-              </div>
-
-              <div id="abstract" className="p-8 md:p-12 border-b bg-gray-50 scroll-mt-32">
-                <h2 className="text-2xl font-bold text-blue-900 mb-4">Tóm tắt</h2>
-                <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-                  {content.abstract}
-                </div>
-              </div>
-
-              <div id="keywords" className="p-8 md:p-12 border-b scroll-mt-32">
-                <h3 className="text-xl font-bold text-blue-900 mb-3">Từ khóa</h3>
-                <p className="text-gray-700 italic">{content.keywords}</p>
-              </div>
-
-              <div id="intro" className="p-8 md:p-12 border-b scroll-mt-32">
-                <h2 className="text-2xl font-bold text-blue-900 mb-6">1. Giới thiệu</h2>
-                <div>
-                  {renderContentWithMedia(content.introduction, 'introduction')}
-                </div>
-              </div>
-
-              <div id="theoretical" className="scroll-mt-32 bg-white">
-                <div className="p-8 md:p-12 border-b">
-                  <h2 className="text-2xl font-bold text-blue-900 mb-6">2. Cơ sở lý thuyết</h2>
-                </div>
-                {parsedSections.theoretical?.map(section => (
-                  <ContentSection
-                    key={section.id}
-                    section={section}
-                    onSelectSection={handleSelectSection}
-                    depth={1}
-                  />
-                ))}
-              </div>
-
-              <div id="methodology" className="scroll-mt-32 bg-white">
-                <div className="p-8 md:p-12 border-b">
-                  <h2 className="text-2xl font-bold text-blue-900 mb-6">3. Phương pháp nghiên cứu</h2>
-                </div>
-                {parsedSections.methodology?.map(section => (
-                  <ContentSection
-                    key={section.id}
-                    section={section}
-                    onSelectSection={handleSelectSection}
-                    depth={1}
-                  />
-                ))}
-              </div>
-
-              <div id="results" className="scroll-mt-32 bg-white">
-                <div className="p-8 md:p-12 border-b">
-                  <h2 className="text-2xl font-bold text-blue-900 mb-6">4. Kết quả nghiên cứu</h2>
-                </div>
-                {parsedSections.results?.map(section => (
-                  <ContentSection
-                    key={section.id}
-                    section={section}
-                    onSelectSection={handleSelectSection}
-                    depth={1}
-                  />
-                ))}
-              </div>
-
-              <div id="conclusion" className="p-8 md:p-12 border-b scroll-mt-32">
-                <h2 className="text-2xl font-bold text-blue-900 mb-6">5. Kết luận</h2>
-                <div>
-                  {renderContentWithMedia(content.conclusion, 'conclusion')}
-                </div>
-              </div>
-
-              <div id="references" className="p-8 md:p-12 bg-gray-50 scroll-mt-32">
-                <h2 className="text-2xl font-bold text-blue-900 mb-6">Tài liệu tham khảo</h2>
-                <div className="text-gray-700 leading-relaxed whitespace-pre-line text-sm">
-                  {content.references}
-                </div>
-              </div>
-            </article>
-
-            <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <div className="flex items-start gap-4">
-                <FileText className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Trích dẫn bài báo</h3>
-                  <p className="text-sm text-gray-700">
-                    Để trích dẫn bài báo này, vui lòng sử dụng định dạng APA hoặc tham khảo hướng dẫn
-                    trích dẫn của tạp chí.
-                  </p>
-                </div>
-              </div>
+        <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-8">
+          <div className="flex items-start gap-4">
+            <FileText className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2 text-lg">Về bản dịch này</h3>
+              <p className="text-gray-700 leading-relaxed">
+                Đây là bản dịch tiếng Việt của bài báo khoa học đã được công bố trên tạp chí quốc tế.
+                Nội dung được dịch và trình bày nhằm phục vụ mục đích giáo dục và nghiên cứu.
+              </p>
             </div>
           </div>
         </div>
