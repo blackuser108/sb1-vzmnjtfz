@@ -8,8 +8,28 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('@supabase')) {
+              return 'supabase';
+            }
+            if (id.includes('@google/generative-ai')) {
+              return 'genai';
+            }
+            if (id.includes('recharts')) {
+              return 'recharts';
+            }
+            return 'vendor';
+          }
+        },
+      },
+    },
+  },
   server: {
-    // Proxy mọi request /api -> http://localhost:3000
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
