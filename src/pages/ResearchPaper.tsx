@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
-import { FileText, Download, ExternalLink, BookOpen } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { FileText, Download, ExternalLink, BookOpen, Menu, X } from 'lucide-react';
+import CollapsibleMenu from '../components/CollapsibleMenu';
+import { researchStructure } from '../data/researchStructure';
 
 interface ResearchContent {
   title: string;
@@ -24,6 +26,10 @@ export default function ResearchPaper() {
   const [content, setContent] = useState<ResearchContent | null>(null);
   const [tables, setTables] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [activeSection, setActiveSection] = useState('abstract');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const JOURNAL_URL = 'https://rajournals.in/index.php/rajar/article/view/1785';
   const PDF_DRIVE_URL = 'https://drive.google.com/file/d/1KBfMzUBWzE3Y8y5_siMoBW41wReANhOB/view?usp=sharing';
@@ -56,6 +62,25 @@ export default function ResearchPaper() {
   useEffect(() => {
     loadResearchContent();
   }, []);
+
+  const handleToggleSection = (id: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedSections(newExpanded);
+  };
+
+  const handleSelectSection = (id: string) => {
+    setActiveSection(id);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setMobileMenuOpen(false);
+    }
+  };
 
   const loadResearchContent = async () => {
     try {
@@ -264,8 +289,8 @@ export default function ResearchPaper() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4">
+      <div className="bg-white shadow-sm border-b sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <BookOpen className="w-6 h-6 text-blue-600" />
@@ -296,100 +321,141 @@ export default function ResearchPaper() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        <div className="bg-gradient-to-r from-blue-50 to-teal-50 border-l-4 border-blue-600 rounded-r-lg p-6 mb-8 shadow-sm">
-          <div className="flex items-start gap-3">
-            <FileText className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-            <div>
-              <h3 className="font-bold text-gray-900 mb-2 text-lg">Về bản dịch này</h3>
-              <p className="text-gray-700 leading-relaxed">
-                Đây là bản dịch tiếng Việt của bài báo khoa học đã được công bố trên tạp chí quốc tế.
-                Nội dung được dịch và trình bày nhằm phục vụ mục đích giáo dục và nghiên cứu.
-                Để trích dẫn hoặc xem bản gốc tiếng Anh, vui lòng sử dụng các nút bên trên.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <article className="bg-white rounded-lg shadow-sm border">
-          <div className="p-8 md:p-12 border-b">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight text-center">
-              {content.title}
-            </h1>
-
-            <div className="text-center mb-6">
-              <p className="text-lg text-gray-700 whitespace-pre-line">{content.authors}</p>
-            </div>
-
-            <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r">
-              <p className="text-sm text-gray-700 whitespace-pre-line">{content.international}</p>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex gap-8">
+          <div className="hidden lg:block w-80 flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-24">
+              <h3 className="font-bold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                <Menu className="w-5 h-5 text-blue-600" />
+                Mục lục
+              </h3>
+              <div className="space-y-1 max-h-96 overflow-y-auto pr-2">
+                <CollapsibleMenu
+                  sections={researchStructure}
+                  expandedSections={expandedSections}
+                  onToggleSection={handleToggleSection}
+                  onSelectSection={handleSelectSection}
+                  activeSection={activeSection}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="p-8 md:p-12 border-b bg-gray-50">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Tóm tắt</h2>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-              {content.abstract}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden mb-4 flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200 hover:bg-gray-50"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            <span>Mục lục</span>
+          </button>
+
+          {mobileMenuOpen && (
+            <div className="lg:hidden mb-6 bg-white rounded-lg shadow-sm border p-6">
+              <CollapsibleMenu
+                sections={researchStructure}
+                expandedSections={expandedSections}
+                onToggleSection={handleToggleSection}
+                onSelectSection={handleSelectSection}
+                activeSection={activeSection}
+              />
             </div>
-          </div>
+          )}
 
-          <div className="p-8 md:p-12 border-b">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Từ khóa</h3>
-            <p className="text-gray-700 italic">{content.keywords}</p>
-          </div>
-
-          <div className="p-8 md:p-12 border-b">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">1. Giới thiệu</h2>
-            <div>
-              {renderContentWithMedia(content.introduction, 'introduction')}
+          <div className="flex-1 min-w-0" ref={contentRef}>
+            <div className="bg-gradient-to-r from-blue-50 to-teal-50 border-l-4 border-blue-600 rounded-r-lg p-6 mb-8 shadow-sm">
+              <div className="flex items-start gap-3">
+                <FileText className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 text-lg">Về bản dịch này</h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    Đây là bản dịch tiếng Việt của bài báo khoa học đã được công bố trên tạp chí quốc tế.
+                    Nội dung được dịch và trình bày nhằm phục vụ mục đích giáo dục và nghiên cứu.
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div className="p-8 md:p-12 border-b">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">2. Cơ sở lý thuyết</h2>
-            <div>
-              {renderContentWithMedia(content.theoretical, 'theoretical')}
-            </div>
-          </div>
+            <article className="bg-white rounded-lg shadow-sm border">
+              <div className="p-8 md:p-12 border-b">
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight text-center">
+                  {content.title}
+                </h1>
 
-          <div className="p-8 md:p-12 border-b">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">3. Phương pháp nghiên cứu</h2>
-            <div>
-              {renderContentWithMedia(content.methodology, 'methodology')}
-            </div>
-          </div>
+                <div className="text-center mb-6">
+                  <p className="text-lg text-gray-700 whitespace-pre-line">{content.authors}</p>
+                </div>
 
-          <div className="p-8 md:p-12 border-b">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">4. Kết quả nghiên cứu</h2>
-            <div>
-              {renderContentWithMedia(content.results, 'results')}
-            </div>
-          </div>
+                <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r">
+                  <p className="text-sm text-gray-700 whitespace-pre-line">{content.international}</p>
+                </div>
+              </div>
 
-          <div className="p-8 md:p-12 border-b">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">5. Kết luận</h2>
-            <div>
-              {renderContentWithMedia(content.conclusion, 'conclusion')}
-            </div>
-          </div>
+              <div id="abstract" className="p-8 md:p-12 border-b bg-gray-50 scroll-mt-32">
+                <h2 className="text-2xl font-bold text-blue-900 mb-4">Tóm tắt</h2>
+                <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
+                  {content.abstract}
+                </div>
+              </div>
 
-          <div className="p-8 md:p-12 bg-gray-50">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Tài liệu tham khảo</h2>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line text-sm">
-              {content.references}
-            </div>
-          </div>
-        </article>
+              <div id="keywords" className="p-8 md:p-12 border-b scroll-mt-32">
+                <h3 className="text-xl font-bold text-blue-900 mb-3">Từ khóa</h3>
+                <p className="text-gray-700 italic">{content.keywords}</p>
+              </div>
 
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <div className="flex items-start gap-4">
-            <FileText className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Trích dẫn bài báo</h3>
-              <p className="text-sm text-gray-700">
-                Để trích dẫn bài báo này, vui lòng sử dụng định dạng APA hoặc tham khảo hướng dẫn
-                trích dẫn của tạp chí.
-              </p>
+              <div id="intro" className="p-8 md:p-12 border-b scroll-mt-32">
+                <h2 className="text-2xl font-bold text-blue-900 mb-6">1. Giới thiệu</h2>
+                <div>
+                  {renderContentWithMedia(content.introduction, 'introduction')}
+                </div>
+              </div>
+
+              <div id="theoretical" className="p-8 md:p-12 border-b scroll-mt-32">
+                <h2 className="text-2xl font-bold text-blue-900 mb-6">2. Cơ sở lý thuyết</h2>
+                <div>
+                  {renderContentWithMedia(content.theoretical, 'theoretical')}
+                </div>
+              </div>
+
+              <div id="methodology" className="p-8 md:p-12 border-b scroll-mt-32">
+                <h2 className="text-2xl font-bold text-blue-900 mb-6">3. Phương pháp nghiên cứu</h2>
+                <div>
+                  {renderContentWithMedia(content.methodology, 'methodology')}
+                </div>
+              </div>
+
+              <div id="results" className="p-8 md:p-12 border-b scroll-mt-32">
+                <h2 className="text-2xl font-bold text-blue-900 mb-6">4. Kết quả nghiên cứu</h2>
+                <div>
+                  {renderContentWithMedia(content.results, 'results')}
+                </div>
+              </div>
+
+              <div id="conclusion" className="p-8 md:p-12 border-b scroll-mt-32">
+                <h2 className="text-2xl font-bold text-blue-900 mb-6">5. Kết luận</h2>
+                <div>
+                  {renderContentWithMedia(content.conclusion, 'conclusion')}
+                </div>
+              </div>
+
+              <div id="references" className="p-8 md:p-12 bg-gray-50 scroll-mt-32">
+                <h2 className="text-2xl font-bold text-blue-900 mb-6">Tài liệu tham khảo</h2>
+                <div className="text-gray-700 leading-relaxed whitespace-pre-line text-sm">
+                  {content.references}
+                </div>
+              </div>
+            </article>
+
+            <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="flex items-start gap-4">
+                <FileText className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Trích dẫn bài báo</h3>
+                  <p className="text-sm text-gray-700">
+                    Để trích dẫn bài báo này, vui lòng sử dụng định dạng APA hoặc tham khảo hướng dẫn
+                    trích dẫn của tạp chí.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
