@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { FileText, Download, ExternalLink, BookOpen, Menu, X } from 'lucide-react';
 import CollapsibleMenu from '../components/CollapsibleMenu';
+import ContentSection from '../components/ContentSection';
 import { researchStructure } from '../data/researchStructure';
+import { parseContent, ContentSection as ContentSectionType } from '../utils/parseContent';
 
 interface ResearchContent {
   title: string;
@@ -29,6 +31,7 @@ export default function ResearchPaper() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [activeSection, setActiveSection] = useState('abstract');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [parsedSections, setParsedSections] = useState<Record<string, ContentSectionType[]>>({});
   const contentRef = useRef<HTMLDivElement>(null);
 
   const JOURNAL_URL = 'https://rajournals.in/index.php/rajar/article/view/1785';
@@ -82,6 +85,7 @@ export default function ResearchPaper() {
     }
   };
 
+
   const loadResearchContent = async () => {
     try {
       const textFiles = [
@@ -126,7 +130,7 @@ export default function ResearchPaper() {
         Promise.all(tablePromises)
       ]);
 
-      setContent({
+      const contentObj = {
         title: texts[0],
         authors: texts[1],
         international: texts[2],
@@ -138,7 +142,15 @@ export default function ResearchPaper() {
         results: texts[8],
         conclusion: texts[9],
         references: texts[10]
-      });
+      };
+      setContent(contentObj);
+
+      const parsed: Record<string, ContentSectionType[]> = {
+        theoretical: parseContent(contentObj.theoretical, 'theoretical'),
+        methodology: parseContent(contentObj.methodology, 'methodology'),
+        results: parseContent(contentObj.results, 'results')
+      };
+      setParsedSections(parsed);
 
       const tablesMap: Record<string, string> = {};
       tablesData.forEach(table => {
@@ -409,25 +421,46 @@ export default function ResearchPaper() {
                 </div>
               </div>
 
-              <div id="theoretical" className="p-8 md:p-12 border-b scroll-mt-32">
-                <h2 className="text-2xl font-bold text-blue-900 mb-6">2. Cơ sở lý thuyết</h2>
-                <div>
-                  {renderContentWithMedia(content.theoretical, 'theoretical')}
+              <div id="theoretical" className="scroll-mt-32 bg-white">
+                <div className="p-8 md:p-12 border-b">
+                  <h2 className="text-2xl font-bold text-blue-900 mb-6">2. Cơ sở lý thuyết</h2>
                 </div>
+                {parsedSections.theoretical?.map(section => (
+                  <ContentSection
+                    key={section.id}
+                    section={section}
+                    onSelectSection={handleSelectSection}
+                    depth={1}
+                  />
+                ))}
               </div>
 
-              <div id="methodology" className="p-8 md:p-12 border-b scroll-mt-32">
-                <h2 className="text-2xl font-bold text-blue-900 mb-6">3. Phương pháp nghiên cứu</h2>
-                <div>
-                  {renderContentWithMedia(content.methodology, 'methodology')}
+              <div id="methodology" className="scroll-mt-32 bg-white">
+                <div className="p-8 md:p-12 border-b">
+                  <h2 className="text-2xl font-bold text-blue-900 mb-6">3. Phương pháp nghiên cứu</h2>
                 </div>
+                {parsedSections.methodology?.map(section => (
+                  <ContentSection
+                    key={section.id}
+                    section={section}
+                    onSelectSection={handleSelectSection}
+                    depth={1}
+                  />
+                ))}
               </div>
 
-              <div id="results" className="p-8 md:p-12 border-b scroll-mt-32">
-                <h2 className="text-2xl font-bold text-blue-900 mb-6">4. Kết quả nghiên cứu</h2>
-                <div>
-                  {renderContentWithMedia(content.results, 'results')}
+              <div id="results" className="scroll-mt-32 bg-white">
+                <div className="p-8 md:p-12 border-b">
+                  <h2 className="text-2xl font-bold text-blue-900 mb-6">4. Kết quả nghiên cứu</h2>
                 </div>
+                {parsedSections.results?.map(section => (
+                  <ContentSection
+                    key={section.id}
+                    section={section}
+                    onSelectSection={handleSelectSection}
+                    depth={1}
+                  />
+                ))}
               </div>
 
               <div id="conclusion" className="p-8 md:p-12 border-b scroll-mt-32">
