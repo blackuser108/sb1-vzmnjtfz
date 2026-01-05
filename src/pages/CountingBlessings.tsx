@@ -176,7 +176,7 @@ export default function CountingBlessings() {
 
             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <span className="w-10 h-10 bg-blue-500 text-white flex items-center justify-center rounded-full font-bold text-sm">Bước 2</span>
+                <span className="w-12 h-12 bg-blue-500 text-white flex items-center justify-center rounded-full font-bold text-sm">Bước 2</span>
                 Ghi Lại Ba Điều Biết Ơn
               </h3>
               <div className="ml-10 space-y-3">
@@ -198,7 +198,7 @@ export default function CountingBlessings() {
 
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <span className="w-10 h-10 bg-purple-500 text-white flex items-center justify-center rounded-full font-bold text-sm">Bước 3</span>
+                <span className="w-12 h-12 bg-purple-500 text-white flex items-center justify-center rounded-full font-bold text-sm">Bước 3</span>
                 Gửi Phản Hồi Tự Động
               </h3>
               <div className="ml-10 space-y-3">
@@ -215,7 +215,7 @@ export default function CountingBlessings() {
 
             <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <span className="w-10 h-10 bg-red-500 text-white flex items-center justify-center rounded-full font-bold text-sm">Bước 4</span>
+                <span className="w-12 h-12 bg-red-500 text-white flex items-center justify-center rounded-full font-bold text-sm">Bước 4</span>
                 Nhận Email Phản Hồi Cảm Xúc Và Gợi Ý
               </h3>
               <div className="ml-10 space-y-3">
@@ -235,7 +235,7 @@ export default function CountingBlessings() {
 
             <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <span className="w-10 h-10 bg-yellow-500 text-white flex items-center justify-center rounded-full font-bold text-sm">Bước 5</span>
+                <span className="w-12 h-12 bg-yellow-500 text-white flex items-center justify-center rounded-full font-bold text-sm">Bước 5</span>
                 Tiếp Tục Trong 10 Ngày
               </h3>
               <ul className="ml-10 space-y-2 text-gray-700">
