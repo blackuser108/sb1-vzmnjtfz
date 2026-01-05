@@ -22,11 +22,36 @@ interface TableData {
 
 export default function ResearchPaper() {
   const [content, setContent] = useState<ResearchContent | null>(null);
-  const [tables, setTables] = useState<TableData[]>([]);
+  const [tables, setTables] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   const JOURNAL_URL = 'https://rajournals.in/index.php/rajar/article/view/1785';
   const PDF_DRIVE_URL = 'https://drive.google.com/file/d/1KBfMzUBWzE3Y8y5_siMoBW41wReANhOB/view?usp=sharing';
+
+  const TABLE_MARKERS: Record<string, string> = {
+    'Table 4.1.1. Thực trạng Lòng biết ơn': 'table-4.1.1-gratitude',
+    'Bảng 4.1.2. Thực trạng hành vi ủng hộ xã hội': 'table-4.1.2-full-prosocial',
+    'Bảng 4.1.3. Thực trạng Ý nghĩa cuộc sống': 'table-4.1.3-mil-classification',
+    'Bảng 4.2.1. Ma trận tương quan giữa các biến số (N = 406)': 'table-4.2.1-correlation-matrix',
+    'Bảng 4.2.2. Kết quả hồi quy tuyến tính: Ảnh hưởng của Ý nghĩa cuộc sống đến Hành vi hướng xã hội': 'table-4.2.2-linear-regression',
+    'Bảng 4.2.3: Tóm tắt kết quả kiểm định mô hình trung gian (Baron & Kenny, 1986)': 'table-4.2.3-mediation-baron-kenny',
+    'Bảng 4.3.1: Tóm tắt kết quả so sánh theo nhóm giới tính (ANOVA)': 'table-4.3.1-anova-gender',
+    'Bảng 4.3.2. Tóm tắt kết quả so sánh theo nhóm Học lực (ANOVA)': 'table-4.3.2-anova-academic-performance',
+    'Bảng 4.3.3: Tóm tắt kết quả phân tích ANOVA theo Khối lớp': 'table-4.3.3-anova-grade-level',
+    'Bảng 4.4a:': 'table-4.4a-gratitude-education-measures',
+    'Bảng 4.4b:': 'table-4.4b-emotional-intervention-measures'
+  };
+
+  const IMAGE_MARKERS: Record<string, { src: string; caption: string }> = {
+    'Sơ đồ 2.4.3:': {
+      src: '/research report/image/2.4.3.png',
+      caption: 'Sơ đồ 2.4.3: Mô hình nghiên cứu'
+    },
+    'Sơ đồ 4.2.3. Mô hình trung gian của Ý nghĩa cuộc sống trong mối quan hệ giữa Lòng biết ơn và Hành vi hướng xã hội': {
+      src: '/research report/image/4.2.3.png',
+      caption: 'Sơ đồ 4.2.3: Mô hình trung gian của Ý nghĩa cuộc sống trong mối quan hệ giữa Lòng biết ơn và Hành vi hướng xã hội'
+    }
+  };
 
   useEffect(() => {
     loadResearchContent();
@@ -66,10 +91,10 @@ export default function ResearchPaper() {
         fetch(`/research report/text/${file}`).then(res => res.text())
       );
 
-      const tablePromises = tableFiles.map(async file => ({
-        name: file,
-        content: await fetch(`/research report/table/${file}`).then(res => res.text())
-      }));
+      const tablePromises = tableFiles.map(async file => {
+        const content = await fetch(`/research report/table/${file}`).then(res => res.text());
+        return { name: file.replace('.txt', ''), content };
+      });
 
       const [texts, tablesData] = await Promise.all([
         Promise.all(textPromises),
@@ -90,7 +115,11 @@ export default function ResearchPaper() {
         references: texts[10]
       });
 
-      setTables(tablesData);
+      const tablesMap: Record<string, string> = {};
+      tablesData.forEach(table => {
+        tablesMap[table.name] = table.content;
+      });
+      setTables(tablesMap);
     } catch (error) {
       console.error('Error loading research content:', error);
     } finally {
@@ -109,6 +138,109 @@ export default function ResearchPaper() {
     );
 
     return { tableName, headers, rows };
+  };
+
+  const renderContentWithMedia = (text: string, section: string) => {
+    const lines = text.split('\n');
+    const elements: JSX.Element[] = [];
+    let currentParagraph: string[] = [];
+    let key = 0;
+
+    const flushParagraph = () => {
+      if (currentParagraph.length > 0) {
+        const paragraphText = currentParagraph.join('\n');
+        elements.push(
+          <p key={`p-${key++}`} className="text-gray-700 leading-relaxed mb-4 text-justify whitespace-pre-line">
+            {paragraphText}
+          </p>
+        );
+        currentParagraph = [];
+      }
+    };
+
+    lines.forEach((line, index) => {
+      let matched = false;
+
+      Object.entries(TABLE_MARKERS).forEach(([marker, tableKey]) => {
+        if (line.includes(marker)) {
+          matched = true;
+          flushParagraph();
+
+          const tableContent = tables[tableKey];
+          if (tableContent) {
+            const parsed = parseTable(tableContent);
+            if (parsed) {
+              elements.push(
+                <div key={`table-${key++}`} className="my-8 overflow-x-auto">
+                  <p className="text-center font-semibold text-gray-800 mb-4">
+                    {parsed.tableName}
+                  </p>
+                  <div className="inline-block min-w-full align-middle">
+                    <table className="min-w-full border-collapse border border-gray-300 text-sm">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          {parsed.headers.map((header, idx) => (
+                            <th
+                              key={idx}
+                              className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700"
+                            >
+                              {header}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {parsed.rows.map((row, rowIdx) => (
+                          <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            {row.map((cell, cellIdx) => (
+                              <td
+                                key={cellIdx}
+                                className="border border-gray-300 px-4 py-3 text-gray-700"
+                              >
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            }
+          }
+        }
+      });
+
+      Object.entries(IMAGE_MARKERS).forEach(([marker, imageData]) => {
+        if (line.includes(marker)) {
+          matched = true;
+          flushParagraph();
+
+          elements.push(
+            <div key={`img-${key++}`} className="my-8">
+              <img
+                src={imageData.src}
+                alt={imageData.caption}
+                className="mx-auto max-w-full h-auto rounded-lg shadow-md"
+              />
+              <p className="text-center text-sm text-gray-600 mt-3 italic">
+                {imageData.caption}
+              </p>
+            </div>
+          );
+        }
+      });
+
+      if (!matched && line.trim()) {
+        currentParagraph.push(line);
+      } else if (!matched && !line.trim() && currentParagraph.length > 0) {
+        flushParagraph();
+      }
+    });
+
+    flushParagraph();
+    return elements;
   };
 
   if (loading) {
@@ -165,6 +297,20 @@ export default function ResearchPaper() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-12">
+        <div className="bg-gradient-to-r from-blue-50 to-teal-50 border-l-4 border-blue-600 rounded-r-lg p-6 mb-8 shadow-sm">
+          <div className="flex items-start gap-3">
+            <FileText className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2 text-lg">Về bản dịch này</h3>
+              <p className="text-gray-700 leading-relaxed">
+                Đây là bản dịch tiếng Việt của bài báo khoa học đã được công bố trên tạp chí quốc tế.
+                Nội dung được dịch và trình bày nhằm phục vụ mục đích giáo dục và nghiên cứu.
+                Để trích dẫn hoặc xem bản gốc tiếng Anh, vui lòng sử dụng các nút bên trên.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <article className="bg-white rounded-lg shadow-sm border">
           <div className="p-8 md:p-12 border-b">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight text-center">
@@ -194,103 +340,36 @@ export default function ResearchPaper() {
 
           <div className="p-8 md:p-12 border-b">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">1. Giới thiệu</h2>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-              {content.introduction}
+            <div>
+              {renderContentWithMedia(content.introduction, 'introduction')}
             </div>
           </div>
 
           <div className="p-8 md:p-12 border-b">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">2. Cơ sở lý thuyết</h2>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-              {content.theoretical}
+            <div>
+              {renderContentWithMedia(content.theoretical, 'theoretical')}
             </div>
           </div>
 
           <div className="p-8 md:p-12 border-b">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">3. Phương pháp nghiên cứu</h2>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-              {content.methodology}
+            <div>
+              {renderContentWithMedia(content.methodology, 'methodology')}
             </div>
           </div>
 
           <div className="p-8 md:p-12 border-b">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">4. Kết quả nghiên cứu</h2>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify mb-8">
-              {content.results}
-            </div>
-
-            <div className="space-y-12">
-              {tables.map((table, index) => {
-                const parsed = parseTable(table.content);
-                if (!parsed) return null;
-
-                return (
-                  <div key={index} className="overflow-x-auto">
-                    <p className="text-center font-semibold text-gray-800 mb-4">
-                      {parsed.tableName}
-                    </p>
-                    <div className="inline-block min-w-full align-middle">
-                      <table className="min-w-full border-collapse border border-gray-300 text-sm">
-                        <thead className="bg-gray-100">
-                          <tr>
-                            {parsed.headers.map((header, idx) => (
-                              <th
-                                key={idx}
-                                className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700"
-                              >
-                                {header}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {parsed.rows.map((row, rowIdx) => (
-                            <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                              {row.map((cell, cellIdx) => (
-                                <td
-                                  key={cellIdx}
-                                  className="border border-gray-300 px-4 py-3 text-gray-700"
-                                >
-                                  {cell}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                );
-              })}
-
-              <div className="my-8">
-                <img
-                  src="/research report/image/2.4.3.png"
-                  alt="Hình 2.4.3 - Mô hình nghiên cứu"
-                  className="mx-auto max-w-full h-auto rounded-lg shadow-md"
-                />
-                <p className="text-center text-sm text-gray-600 mt-3 italic">
-                  Hình 2.4.3: Mô hình nghiên cứu
-                </p>
-              </div>
-
-              <div className="my-8">
-                <img
-                  src="/research report/image/4.2.3.png"
-                  alt="Hình 4.2.3 - Kết quả phân tích trung gian"
-                  className="mx-auto max-w-full h-auto rounded-lg shadow-md"
-                />
-                <p className="text-center text-sm text-gray-600 mt-3 italic">
-                  Hình 4.2.3: Kết quả phân tích vai trò trung gian
-                </p>
-              </div>
+            <div>
+              {renderContentWithMedia(content.results, 'results')}
             </div>
           </div>
 
           <div className="p-8 md:p-12 border-b">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">5. Kết luận</h2>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-              {content.conclusion}
+            <div>
+              {renderContentWithMedia(content.conclusion, 'conclusion')}
             </div>
           </div>
 

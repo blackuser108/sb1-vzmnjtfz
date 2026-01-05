@@ -1,8 +1,12 @@
 # Hướng Dẫn Cấu Hình Trang Bài Báo Khoa Học
 
-## Cập nhật Links cho Tạp chí và PDF
+## ⚠️ Links hiện tại đã được cấu hình
 
-Để cập nhật các link tới tạp chí quốc tế và file PDF trên Google Drive, vui lòng làm theo các bước sau:
+Links hiện tại trong file `src/pages/ResearchPaper.tsx`:
+- **Tạp chí quốc tế**: https://rajournals.in/index.php/rajar/article/view/1785
+- **Google Drive PDF**: https://drive.google.com/file/d/1KBfMzUBWzE3Y8y5_siMoBW41wReANhOB/view?usp=sharing
+
+## Cập nhật Links (nếu cần)
 
 ### 1. Mở file ResearchPaper.tsx
 
@@ -13,38 +17,13 @@ File nằm tại: `src/pages/ResearchPaper.tsx`
 Tìm dòng code sau (khoảng dòng 28-29):
 
 ```typescript
-const JOURNAL_URL = 'https://example.com/journal-article';
-const PDF_DRIVE_URL = 'https://drive.google.com/file/d/YOUR_FILE_ID/view?usp=sharing';
+const JOURNAL_URL = 'https://rajournals.in/index.php/rajar/article/view/1785';
+const PDF_DRIVE_URL = 'https://drive.google.com/file/d/1KBfMzUBWzE3Y8y5_siMoBW41wReANhOB/view?usp=sharing';
 ```
 
-### 3. Thay thế bằng links thật
+### 3. Thay thế bằng links mới (nếu cần)
 
-#### Link Tạp chí Quốc tế:
-Thay thế `https://example.com/journal-article` bằng link tới bài báo trên tạp chí quốc tế.
-
-**Ví dụ:**
-```typescript
-const JOURNAL_URL = 'https://www.nature.com/articles/s41598-024-xxxxx';
-```
-
-#### Link Google Drive PDF:
-Thay thế `YOUR_FILE_ID` bằng File ID từ Google Drive.
-
-**Cách lấy File ID từ Google Drive:**
-
-1. Upload file PDF lên Google Drive
-2. Click chuột phải vào file → Chọn "Chia sẻ" (Share)
-3. Chọn "Bất kỳ ai có link" (Anyone with the link)
-4. Sao chép link chia sẻ, sẽ có dạng:
-   ```
-   https://drive.google.com/file/d/1ABc2DEf3GHi4JKl5MNo6PQr7STu8VWx9YZ/view?usp=sharing
-   ```
-5. Phần `1ABc2DEf3GHi4JKl5MNo6PQr7STu8VWx9YZ` chính là File ID
-
-**Ví dụ:**
-```typescript
-const PDF_DRIVE_URL = 'https://drive.google.com/file/d/1ABc2DEf3GHi4JKl5MNo6PQr7STu8VWx9YZ/view?usp=sharing';
-```
+Chỉ thay đổi nếu bài báo được xuất bản ở nơi khác hoặc file PDF được cập nhật.
 
 ### 4. Save file và rebuild
 
