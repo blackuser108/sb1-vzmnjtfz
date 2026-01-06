@@ -116,11 +116,12 @@ export default function DailyTasks({ onNavigate }: DailyTasksProps) {
     setResponses({});
   };
 
-  const handleResponseChange = (questionId: string, value: string | number | boolean, type: 'text' | 'value' | 'checkbox') => {
+  const handleResponseChange = (questionId: string, value: string | number | boolean, type: 'text' | 'value' | 'checkbox', questionText?: string) => {
     setResponses(prev => ({
       ...prev,
       [questionId]: {
         question_id: questionId,
+        question_text: questionText,
         ...(type === 'text' ? { response_text: value as string } :
             type === 'checkbox' ? { checked: value as boolean, response_value: value ? 1 : 0 } :
             { response_value: value as number })
@@ -187,7 +188,7 @@ export default function DailyTasks({ onNavigate }: DailyTasksProps) {
         } else {
           formattedResponses = Object.values(responses).map(resp => ({
             questionId: resp.question_id,
-            questionText: '',
+            questionText: resp.question_text || '',
             responseText: resp.response_text || '',
             responseValue: resp.response_value
           }));
@@ -349,7 +350,7 @@ export default function DailyTasks({ onNavigate }: DailyTasksProps) {
                     </label>
                     <textarea
                       value={responses[question.id]?.response_text || ''}
-                      onChange={(e) => handleResponseChange(question.id, e.target.value, 'text')}
+                      onChange={(e) => handleResponseChange(question.id, e.target.value, 'text', question.question_text)}
                       rows={4}
                       className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Nhập câu trả lời của bạn..."
