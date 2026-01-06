@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { BookHeart, Lightbulb, Users, Check, X, ArrowLeft } from 'lucide-react';
+import { BookHeart, Lightbulb, Users, Check, X, ArrowLeft, TrendingUp } from 'lucide-react';
+import {
+  LineChart as RechartsLineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
 interface TaskQuestion {
   id: string;
@@ -24,6 +34,14 @@ interface TaskResponse {
   checked?: boolean;
 }
 
+interface DailyScore {
+  id: string;
+  task_date: string;
+  gratitude_score: number | null;
+  life_meaning_score: number | null;
+  prosocial_behavior: string | null;
+}
+
 interface DailyTasksProps {
   onNavigate: (page: string) => void;
 }
@@ -38,6 +56,7 @@ export default function DailyTasks({ onNavigate }: DailyTasksProps) {
   const [activeTask, setActiveTask] = useState<string | null>(null);
   const [responses, setResponses] = useState<Record<string, TaskResponse>>({});
   const [saving, setSaving] = useState(false);
+  const [dailyScores, setDailyScores] = useState<DailyScore[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -60,7 +79,7 @@ export default function DailyTasks({ onNavigate }: DailyTasksProps) {
       const today = new Date().toISOString().split('T')[0];
       const currentDay = getDayNumber();
 
-      const [gratitudeResult, meaningResult, prosocialResult, tasksResult] = await Promise.all([
+      const [gratitudeResult, meaningResult, prosocialResult, tasksResult, scoresResult] = await Promise.all([
         supabase
           .from('task_questions')
           .select('*')
@@ -85,7 +104,12 @@ export default function DailyTasks({ onNavigate }: DailyTasksProps) {
           .from('daily_tasks')
           .select('*')
           .eq('user_id', user!.id)
-          .eq('task_date', today)
+          .eq('task_date', today),
+        supabase
+          .from('daily_scores')
+          .select('*')
+          .eq('user_id', user!.id)
+          .order('task_date', { ascending: true })
       ]);
 
       if (gratitudeResult.data) {
@@ -99,6 +123,9 @@ export default function DailyTasks({ onNavigate }: DailyTasksProps) {
       }
       if (tasksResult.data) {
         setDailyTasks(tasksResult.data);
+      }
+      if (scoresResult.data) {
+        setDailyScores(scoresResult.data);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -221,6 +248,15 @@ export default function DailyTasks({ onNavigate }: DailyTasksProps) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const getSevenDayTrendData = () => {
+    const last7Days = dailyScores.slice(-7).map(score => ({
+      date: new Date(score.task_date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+      'Lòng biết ơn': score.gratitude_score,
+      'Ý nghĩa': score.life_meaning_score
+    }));
+    return last7Days;
   };
 
   const renderTaskCard = (
@@ -428,7 +464,29 @@ export default function DailyTasks({ onNavigate }: DailyTasksProps) {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        {dailyScores.length > 0 && (
+          <div className="mt-12 bg-white rounded-2xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-blue-500" />
+              Xu Hướng 7 Ngày Gần Nhất
+            </h2>
+            <p className="text-gray-600 mb-6">Theo dõi sự phát triển của bạn qua các ngày</p>
+
+            <ResponsiveContainer width="100%" height={350}>
+              <RechartsLineChart data={getSevenDayTrendData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis domain={[1, 7]} />
+                <Tooltip formatter={(value: number | null) => value ? value.toFixed(2) : 'Chưa có'} />
+                <Legend />
+                <Line type="monotone" dataKey="Lòng biết ơn" stroke="#EC4899" strokeWidth={2} dot={{ r: 4 }} connectNulls />
+                <Line type="monotone" dataKey="Ý nghĩa" stroke="#F59E0B" strokeWidth={2} dot={{ r: 4 }} connectNulls />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        <div className="mt-12 grid md:grid-cols-3 gap-6">
           {renderTaskCard(
             'Lòng Biết Ơn',
             'Nhật ký',
