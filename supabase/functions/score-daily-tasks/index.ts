@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.24.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,8 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_URL") || "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
 );
+
+const genAI = new GoogleGenerativeAI(Deno.env.get("GOOGLE_API_KEY") || "");
 
 interface ScoringRequest {
   userId: string;
@@ -24,80 +27,58 @@ interface ScoringRequest {
   }>;
 }
 
-function scoreGratitudeResponse(responseText: string): number {
+async function scoreResponse(question: string, responseText: string): Promise<number> {
   if (!responseText || responseText.trim().length === 0) return 1;
 
-  const lowerText = responseText.toLowerCase();
-  const gratitudeKeywords = [
-    'cảm ơn', 'biết ơn', 'may mắn', 'tươi sáng', 'hạnh phúc', 'vui', 'tốt',
-    'tuyệt', 'tuyệt vời', 'siêu', 'lỗi', 'bố', 'mẹ', 'bạn', 'người yêu',
-    'gia đình', 'sức khỏe', 'cuộc sống', 'được sống'
-  ];
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-  let keywordMatches = 0;
-  for (const keyword of gratitudeKeywords) {
-    if (lowerText.includes(keyword)) {
-      keywordMatches++;
+  const scoringPrompt = `Bạn là AI chấm điểm khảo sát tâm lý/nhận thức cá nhân. Nhiệm vụ của bạn là đánh giá câu trả lời dựa trên thang 7 điểm, chia nhỏ 0,25, theo 4 tiêu chí chính:
+
+**Tính liên quan (0–2 điểm)**:
+- Câu trả lời có liên quan trực tiếp đến câu hỏi không?
+- Lạc đề: 0–0,25
+- Chỉ "có/không": 1–2
+- Chi tiết, đúng trọng tâm: 2
+
+**Ví dụ cá nhân / minh họa (0–2 điểm)**:
+- Câu trả lời có ví dụ hoặc trải nghiệm thực tế cụ thể không?
+- Không có ví dụ: 0–0,25
+- Có ví dụ ngắn: 1–1,5
+- Có ví dụ chi tiết, minh họa rõ ràng: 2
+
+**Sâu sắc nội tâm / phân tích (0–2 điểm)**:
+- Câu trả lời có thể hiện nhận thức, thay đổi cảm xúc, lý do, ý nghĩa không?
+- Không thể hiện: 0–0,25
+- Có phân tích ngắn: 1–1,5
+- Có phân tích sâu sắc, rõ ràng: 2
+
+**Rõ ràng & thuyết phục (0–1 điểm)**:
+- Câu trả lời dễ hiểu, mạch lạc, thuyết phục người đọc không?
+- Lộn xộn, khó hiểu: 0–0,25
+- Ngắn gọn, rõ ràng: 0,5–0,75
+- Rất rõ ràng, mạch lạc, thuyết phục: 1
+
+**Yêu cầu:**
+- Không làm tròn, giữ độ chính xác 0,25
+- Chỉ trả về dòng cuối cùng có định dạng: "Tổng điểm: X/7" (ví dụ: "Tổng điểm: 5.25/7")
+
+Câu hỏi: ${question}
+Câu trả lời: ${responseText}`;
+
+  try {
+    const result = await model.generateContent(scoringPrompt);
+    const output = result.response.text();
+
+    const match = output.match(/Tổng điểm:\s*([\d.]+)\/7/);
+    if (match && match[1]) {
+      const score = parseFloat(match[1]);
+      return Math.max(1, Math.min(7, score));
     }
+    return 3.5;
+  } catch (error) {
+    console.error('Error scoring with AI:', error);
+    return 3.5;
   }
-
-  const textLength = responseText.trim().length;
-  let score = 1;
-
-  if (textLength < 20) {
-    score = 2;
-  } else if (textLength < 50) {
-    score = 3;
-  } else if (textLength < 100) {
-    score = 4;
-  } else if (textLength < 150) {
-    score = 5;
-  } else {
-    score = 6;
-  }
-
-  if (keywordMatches >= 3) score = Math.min(7, score + 2);
-  else if (keywordMatches >= 2) score = Math.min(7, score + 1);
-
-  return Math.max(1, Math.min(7, score));
-}
-
-function scoreLifeMeaningResponse(responseText: string): number {
-  if (!responseText || responseText.trim().length === 0) return 1;
-
-  const lowerText = responseText.toLowerCase();
-  const meaningKeywords = [
-    'ý nghĩa', 'mục đích', 'lý tưởng', 'giác ngộ', 'giúp đỡ', 'đóng góp',
-    'tự nhẫn thức', 'phát triển', 'học hỏi', 'tìm kiếm', 'khám phá',
-    'giá trị', 'sứ mệnh', 'tiến bộ', 'tăng trưởng'
-  ];
-
-  let keywordMatches = 0;
-  for (const keyword of meaningKeywords) {
-    if (lowerText.includes(keyword)) {
-      keywordMatches++;
-    }
-  }
-
-  const textLength = responseText.trim().length;
-  let score = 1;
-
-  if (textLength < 20) {
-    score = 2;
-  } else if (textLength < 50) {
-    score = 3;
-  } else if (textLength < 100) {
-    score = 4;
-  } else if (textLength < 150) {
-    score = 5;
-  } else {
-    score = 6;
-  }
-
-  if (keywordMatches >= 3) score = Math.min(7, score + 2);
-  else if (keywordMatches >= 2) score = Math.min(7, score + 1);
-
-  return Math.max(1, Math.min(7, score));
 }
 
 function analyzeProsocialBehavior(responses: Array<{ questionText?: string; responseValue?: number }>): string {
@@ -137,12 +118,26 @@ Deno.serve(async (req: Request) => {
     let lifeMeaningScore: number | null = null;
     let prosocialBehavior: string | null = null;
 
-    if (taskType === 'gratitude') {
-      gratitudeScore = responses.reduce((sum, resp) => sum + scoreGratitudeResponse(resp.responseText), 0) / responses.length;
-      gratitudeScore = Math.round(Math.min(7, Math.max(1, gratitudeScore)));
-    } else if (taskType === 'meaning') {
-      lifeMeaningScore = responses.reduce((sum, resp) => sum + scoreLifeMeaningResponse(resp.responseText), 0) / responses.length;
-      lifeMeaningScore = Math.round(Math.min(7, Math.max(1, lifeMeaningScore)));
+    if (taskType === 'gratitude' || taskType === 'meaning') {
+      const scores: number[] = [];
+
+      for (const resp of responses) {
+        if (resp.responseText && resp.responseText.trim()) {
+          const score = await scoreResponse(resp.questionText || '', resp.responseText);
+          scores.push(score);
+        }
+      }
+
+      if (scores.length > 0) {
+        const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const roundedScore = Math.round(avgScore * 4) / 4;
+
+        if (taskType === 'gratitude') {
+          gratitudeScore = roundedScore;
+        } else {
+          lifeMeaningScore = roundedScore;
+        }
+      }
     } else if (taskType === 'prosocial') {
       prosocialBehavior = analyzeProsocialBehavior(responses);
     }
