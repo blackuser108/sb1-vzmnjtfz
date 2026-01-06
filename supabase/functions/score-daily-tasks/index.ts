@@ -49,7 +49,7 @@ function scoreLifeMeaningResponse(responseText: string): number {
   const lowerText = responseText.toLowerCase();
   const meaningKeywords = [
     'ý nghĩa', 'mục đích', 'lý tưởng', 'giác ngộ', 'giúp đỡ', 'đóng góp',
-    'tự nhận thức', 'phát triển', 'học hỏi', 'tìm kiếm', 'khám phá',
+    'tự nhẫn thức', 'phát triển', 'học hỏi', 'tìm kiếm', 'khám phá',
     'giá trị', 'sứ mệnh', 'tiến bộ', 'tăng trưởng'
   ];
   
@@ -71,12 +71,13 @@ function analyzeProsocialBehavior(responses: Array<{ questionText?: string; resp
 
   const selectedBehaviors = responses
     .filter(resp => resp.responseValue === 1 && resp.questionText)
-    .map(resp => resp.questionText!)
+    .map(resp => resp.questionText!.trim())
     .filter(text => text && text !== 'Hôm nay tôi chưa thực hiện được hành động ủng hộ xã hội nào');
 
   if (selectedBehaviors.length === 0) return '';
 
-  return selectedBehaviors.join(' | ');
+  const unique = [...new Set(selectedBehaviors)];
+  return unique.join(' | ');
 }
 
 Deno.serve(async (req: Request) => {
@@ -112,19 +113,19 @@ Deno.serve(async (req: Request) => {
       prosocialBehavior = analyzeProsocialBehavior(responses);
     }
 
+    const updateData: any = {
+      user_id: userId,
+      task_date: taskDate,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (gratitudeScore) updateData.gratitude_score = gratitudeScore;
+    if (lifeMeaningScore) updateData.life_meaning_score = lifeMeaningScore;
+    if (taskType === 'prosocial') updateData.prosocial_behavior = prosocialBehavior || '';
+
     const { data, error } = await supabase
       .from('daily_scores')
-      .upsert(
-        {
-          user_id: userId,
-          task_date: taskDate,
-          ...(gratitudeScore && { gratitude_score: gratitudeScore }),
-          ...(lifeMeaningScore && { life_meaning_score: lifeMeaningScore }),
-          ...(prosocialBehavior && { prosocial_behavior: prosocialBehavior }),
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,task_date' }
-      )
+      .upsert(updateData, { onConflict: 'user_id,task_date' })
       .select()
       .single();
 
