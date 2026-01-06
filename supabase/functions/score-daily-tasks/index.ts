@@ -130,7 +130,7 @@ Deno.serve(async (req: Request) => {
 
       if (scores.length > 0) {
         const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-        const roundedScore = Math.round(avgScore * 4) / 4;
+        const roundedScore = Math.round(avgScore * 100) / 100;
 
         if (taskType === 'gratitude') {
           gratitudeScore = roundedScore;
