@@ -422,7 +422,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis domain={[1, 7]} />
-                  <Tooltip />
+                  <Tooltip formatter={(value: number) => value.toFixed(2)} />
                   <Line type="monotone" dataKey="Điểm" stroke="#EC4899" strokeWidth={3} dot={{ r: 4 }} />
                 </RechartsLineChart>
               </ResponsiveContainer>
@@ -440,7 +440,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis domain={[1, 7]} />
-                  <Tooltip />
+                  <Tooltip formatter={(value: number) => value.toFixed(2)} />
                   <Line type="monotone" dataKey="Điểm" stroke="#F59E0B" strokeWidth={3} dot={{ r: 4 }} />
                 </RechartsLineChart>
               </ResponsiveContainer>
