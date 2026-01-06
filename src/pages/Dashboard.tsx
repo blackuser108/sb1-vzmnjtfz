@@ -251,7 +251,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     const behaviorCounts: Record<string, number> = {};
     dailyScores.forEach(score => {
       if (score.prosocial_behavior && score.task_date >= sevenDaysAgoStr) {
-        behaviorCounts[score.prosocial_behavior] = (behaviorCounts[score.prosocial_behavior] || 0) + 1;
+        const behaviors = score.prosocial_behavior.split(' | ').map(b => b.trim()).filter(b => b);
+        behaviors.forEach(behavior => {
+          behaviorCounts[behavior] = (behaviorCounts[behavior] || 0) + 1;
+        });
       }
     });
 

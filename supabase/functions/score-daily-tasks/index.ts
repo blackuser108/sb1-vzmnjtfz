@@ -18,6 +18,7 @@ interface ScoringRequest {
   taskType: 'gratitude' | 'meaning' | 'prosocial';
   responses: Array<{
     questionId: string;
+    questionText?: string;
     responseText: string;
     responseValue?: number;
   }>;
@@ -65,40 +66,17 @@ function scoreLifeMeaningResponse(responseText: string): number {
   return score;
 }
 
-function analyzeProsocialBehavior(responses: Array<{ responseText: string; responseValue?: number }>): string {
-  if (responses.length === 0) return 'Chưa có hành vi xã hội';
-  
-  const behaviorCounts: Record<string, number> = {};
-  const prosocialKeywords: Record<string, string[]> = {
-    'Giúp đỡ': ['giúp', 'hỗ trợ', 'cứu', 'cấp cứu', 'tình nguyện'],
-    'Tặng quà': ['tặng', 'cho', 'chia sẻ', 'donate'],
-    'Lắng nghe': ['nghe', 'lắng', 'tư vấn', 'nói chuyện'],
-    'Lời khích lệ': ['khích lệ', 'động viên', 'khen', 'tuyên dương'],
-    'Dạy học': ['dạy', 'hướng dẫn', 'giáo dục', 'huấn luyện']
-  };
-  
-  responses.forEach((resp) => {
-    const lowerText = resp.responseText.toLowerCase();
-    for (const [behavior, keywords] of Object.entries(prosocialKeywords)) {
-      for (const keyword of keywords) {
-        if (lowerText.includes(keyword)) {
-          behaviorCounts[behavior] = (behaviorCounts[behavior] || 0) + 1;
-          break;
-        }
-      }
-    }
-  });
-  
-  let topBehavior = 'Hành vi tích cực';
-  let maxCount = 0;
-  for (const [behavior, count] of Object.entries(behaviorCounts)) {
-    if (count > maxCount) {
-      maxCount = count;
-      topBehavior = behavior;
-    }
-  }
-  
-  return topBehavior;
+function analyzeProsocialBehavior(responses: Array<{ questionText?: string; responseValue?: number }>): string {
+  if (responses.length === 0) return '';
+
+  const selectedBehaviors = responses
+    .filter(resp => resp.responseValue === 1 && resp.questionText)
+    .map(resp => resp.questionText!)
+    .filter(text => text && text !== 'Hôm nay tôi chưa thực hiện được hành động ủng hộ xã hội nào');
+
+  if (selectedBehaviors.length === 0) return '';
+
+  return selectedBehaviors.join(' | ');
 }
 
 Deno.serve(async (req: Request) => {

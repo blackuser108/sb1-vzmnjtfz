@@ -175,8 +175,11 @@ export default function DailyTasks({ onNavigate }: DailyTasksProps) {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       if (token) {
         const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/score-daily-tasks`;
+        const prosocialQuestionMap = new Map(prosocialQuestions.map(q => [q.id, q.question_text]));
+
         const formattedResponses = Object.values(responses).map(resp => ({
           questionId: resp.question_id,
+          questionText: activeTask === 'prosocial' ? prosocialQuestionMap.get(resp.question_id) || '' : '',
           responseText: resp.response_text || '',
           responseValue: resp.response_value
         }));
