@@ -71,7 +71,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
                   <h3 className="font-bold text-blue-900 mb-2">📚 Nội Dung</h3>
                   <p className="text-sm text-gray-700">
-                    10 chương chi tiết với các ví dụ thực tế
+                    5 chương được xây dựng chi tiết từ lý thuyết đến thực tế
                   </p>
                 </div>
                 <div className="bg-gradient-to-br from-teal-50 to-teal-100 p-6 rounded-xl">
