@@ -223,6 +223,16 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     }));
   };
 
+  const getSevenDayTrendData = () => {
+    return dailyScores
+      .slice(-7)
+      .map(score => ({
+        date: new Date(score.task_date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+        'Lòng biết ơn': score.gratitude_score,
+        'Ý nghĩa': score.life_meaning_score
+      }));
+  };
+
   const getDailyGratitudeData = () => {
     return dailyScores
       .filter(s => s.gratitude_score !== null)
@@ -403,6 +413,28 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <Line type="monotone" dataKey="Lòng biết ơn" stroke="#EC4899" strokeWidth={3} dot={{ r: 5 }} />
                 <Line type="monotone" dataKey="Hành vi xã hội" stroke="#14B8A6" strokeWidth={3} dot={{ r: 5 }} />
                 <Line type="monotone" dataKey="Ý nghĩa cuộc sống" stroke="#F59E0B" strokeWidth={3} dot={{ r: 5 }} />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {getSevenDayTrendData().some(d => d['Lòng biết ơn'] !== null || d['Ý nghĩa'] !== null) && (
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-blue-500" />
+              Xu Hướng 7 Ngày Gần Nhất
+            </h2>
+            <p className="text-gray-600 mb-6">Theo dõi sự phát triển của bạn qua các ngày (Hàng ngày)</p>
+
+            <ResponsiveContainer width="100%" height={350}>
+              <RechartsLineChart data={getSevenDayTrendData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis domain={[1, 7]} />
+                <Tooltip formatter={(value: number | null) => value ? value.toFixed(2) : 'Chưa có'} />
+                <Legend />
+                <Line type="monotone" dataKey="Lòng biết ơn" stroke="#EC4899" strokeWidth={2} dot={{ r: 4 }} connectNulls />
+                <Line type="monotone" dataKey="Ý nghĩa" stroke="#F59E0B" strokeWidth={2} dot={{ r: 4 }} connectNulls />
               </RechartsLineChart>
             </ResponsiveContainer>
           </div>
