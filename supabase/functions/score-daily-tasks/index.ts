@@ -25,45 +25,79 @@ interface ScoringRequest {
 }
 
 function scoreGratitudeResponse(responseText: string): number {
+  if (!responseText || responseText.trim().length === 0) return 1;
+
   const lowerText = responseText.toLowerCase();
   const gratitudeKeywords = [
     'cảm ơn', 'biết ơn', 'may mắn', 'tươi sáng', 'hạnh phúc', 'vui', 'tốt',
     'tuyệt', 'tuyệt vời', 'siêu', 'lỗi', 'bố', 'mẹ', 'bạn', 'người yêu',
     'gia đình', 'sức khỏe', 'cuộc sống', 'được sống'
   ];
-  
-  let score = 3;
-  let matchCount = 0;
-  
+
+  let keywordMatches = 0;
   for (const keyword of gratitudeKeywords) {
     if (lowerText.includes(keyword)) {
-      matchCount++;
+      keywordMatches++;
     }
   }
-  
-  score = Math.min(7, Math.max(1, 1 + Math.floor((matchCount * 6) / gratitudeKeywords.length)));
-  return score;
+
+  const textLength = responseText.trim().length;
+  let score = 1;
+
+  if (textLength < 20) {
+    score = 2;
+  } else if (textLength < 50) {
+    score = 3;
+  } else if (textLength < 100) {
+    score = 4;
+  } else if (textLength < 150) {
+    score = 5;
+  } else {
+    score = 6;
+  }
+
+  if (keywordMatches >= 3) score = Math.min(7, score + 2);
+  else if (keywordMatches >= 2) score = Math.min(7, score + 1);
+
+  return Math.max(1, Math.min(7, score));
 }
 
 function scoreLifeMeaningResponse(responseText: string): number {
+  if (!responseText || responseText.trim().length === 0) return 1;
+
   const lowerText = responseText.toLowerCase();
   const meaningKeywords = [
     'ý nghĩa', 'mục đích', 'lý tưởng', 'giác ngộ', 'giúp đỡ', 'đóng góp',
     'tự nhẫn thức', 'phát triển', 'học hỏi', 'tìm kiếm', 'khám phá',
     'giá trị', 'sứ mệnh', 'tiến bộ', 'tăng trưởng'
   ];
-  
-  let score = 3;
-  let matchCount = 0;
-  
+
+  let keywordMatches = 0;
   for (const keyword of meaningKeywords) {
     if (lowerText.includes(keyword)) {
-      matchCount++;
+      keywordMatches++;
     }
   }
-  
-  score = Math.min(7, Math.max(1, 1 + Math.floor((matchCount * 6) / meaningKeywords.length)));
-  return score;
+
+  const textLength = responseText.trim().length;
+  let score = 1;
+
+  if (textLength < 20) {
+    score = 2;
+  } else if (textLength < 50) {
+    score = 3;
+  } else if (textLength < 100) {
+    score = 4;
+  } else if (textLength < 150) {
+    score = 5;
+  } else {
+    score = 6;
+  }
+
+  if (keywordMatches >= 3) score = Math.min(7, score + 2);
+  else if (keywordMatches >= 2) score = Math.min(7, score + 1);
+
+  return Math.max(1, Math.min(7, score));
 }
 
 function analyzeProsocialBehavior(responses: Array<{ questionText?: string; responseValue?: number }>): string {
@@ -119,8 +153,8 @@ Deno.serve(async (req: Request) => {
       updated_at: new Date().toISOString(),
     };
 
-    if (gratitudeScore) updateData.gratitude_score = gratitudeScore;
-    if (lifeMeaningScore) updateData.life_meaning_score = lifeMeaningScore;
+    if (gratitudeScore !== null) updateData.gratitude_score = gratitudeScore;
+    if (lifeMeaningScore !== null) updateData.life_meaning_score = lifeMeaningScore;
     if (taskType === 'prosocial') updateData.prosocial_behavior = prosocialBehavior || '';
 
     const { data, error } = await supabase
