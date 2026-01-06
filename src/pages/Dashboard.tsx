@@ -244,18 +244,28 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   };
 
   const getProsocialBehaviorStats = () => {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+
     const behaviorCounts: Record<string, number> = {};
     dailyScores.forEach(score => {
-      if (score.prosocial_behavior) {
+      if (score.prosocial_behavior && score.task_date >= sevenDaysAgoStr) {
         behaviorCounts[score.prosocial_behavior] = (behaviorCounts[score.prosocial_behavior] || 0) + 1;
       }
     });
+
     return Object.entries(behaviorCounts)
+      .filter(([_, count]) => count > 0)
       .map(([name, count]) => ({ name, value: count }))
       .sort((a, b) => b.value - a.value);
   };
 
-  const COLORS = ['#3B82F6', '#14B8A6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+  const COLORS = [
+    '#3B82F6', '#14B8A6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899',
+    '#06B6D4', '#10B981', '#F97316', '#6366F1', '#A855F7', '#D946EF',
+    '#0891B2', '#059669', '#EA580C', '#4F46E5', '#7C3AED', '#BE185D'
+  ];
 
   if (loading) {
     return (
@@ -439,46 +449,78 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
               <PieChart className="w-6 h-6 text-teal-500" />
-              Hành Vi Ủng Hộ Xã Hội Hàng Ngày
+              Tần suất thực hiện hành vi ủng hộ xã hội (7 ngày qua)
             </h2>
-            <p className="text-gray-600 mb-6">Phân bố các hành vi được chọn nhiều nhất</p>
+            <p className="text-gray-600 mb-8">Phân bố các hành vi ủng hộ xã hội được thực hiện trong tuần gần nhất, sắp xếp theo tần suất cao nhất</p>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    data={getProsocialBehaviorStats()}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {getProsocialBehaviorStats().map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-
-              <div className="flex flex-col justify-center space-y-3">
-                {getProsocialBehaviorStats().map((behavior, index) => {
-                  const total = getProsocialBehaviorStats().reduce((sum, b) => sum + b.value, 0);
-                  const percentage = Math.round((behavior.value / total) * 100);
-                  return (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-full`} style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-gray-800">{behavior.name}</p>
-                        <p className="text-xs text-gray-600">{behavior.value} lần ({percentage}%)</p>
-                      </div>
-                    </div>
-                  );
-                })}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={350}>
+                  <RechartsPieChart>
+                    <Pie
+                      data={getProsocialBehaviorStats()}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={true}
+                      label={({ value, percent }) => `${(percent * 100).toFixed(0)}%`}
+                      outerRadius={110}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {getProsocialBehaviorStats().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number) => `${value} lần`}
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '8px' }}
+                    />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
               </div>
+
+              <div className="lg:col-span-2 flex flex-col justify-center">
+                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-4">
+                  {getProsocialBehaviorStats().map((behavior, index) => {
+                    const total = getProsocialBehaviorStats().reduce((sum, b) => sum + b.value, 0);
+                    const percentage = Math.round((behavior.value / total) * 100);
+                    return (
+                      <div key={index} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                        <div className="flex-shrink-0 w-4 h-4 rounded-full mt-1" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-4">
+                            <p className="text-sm font-semibold text-gray-800 break-words">{behavior.name}</p>
+                            <div className="flex-shrink-0 text-right">
+                              <p className="text-lg font-bold text-gray-900">{behavior.value}</p>
+                              <p className="text-xs text-gray-500">lần ({percentage}%)</p>
+                            </div>
+                          </div>
+                          <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${percentage}%`,
+                                backgroundColor: COLORS[index % COLORS.length]
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {getProsocialBehaviorStats().length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Chưa có dữ liệu hành vi ủng hộ xã hội trong 7 ngày qua</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold">Ghi chú:</span> Biểu đồ hiển thị các hành vi ủng hộ xã hội đã được thực hiện trong 7 ngày gần nhất, được sắp xếp theo thứ tự tần suất từ cao đến thấp. Mỗi hành vi được đánh dấu và ghi nhận khi bạn hoàn thành các nhiệm vụ hàng ngày.
+              </p>
             </div>
           </div>
         )}
