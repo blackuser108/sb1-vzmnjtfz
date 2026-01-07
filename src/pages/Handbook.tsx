@@ -77,7 +77,7 @@ export default function Handbook({ onNavigate }: HandbookProps) {
                 <div className="bg-gradient-to-br from-teal-50 to-teal-100 p-6 rounded-xl">
                   <h3 className="font-bold text-teal-900 mb-2">👥 Đối Tượng</h3>
                   <p className="text-sm text-gray-700">
-                    Dành cho học sinh, phụ huynh và giáo viên
+                    Dành cho học sinh THPT
                   </p>
                 </div>
                 <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-xl">
