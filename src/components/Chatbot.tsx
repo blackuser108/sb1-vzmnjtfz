@@ -74,90 +74,28 @@ export default function Chatbot() {
     await saveChatMessage(userMessage, 'user');
 
     try {
-      const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (!apiKey) throw new Error('API key not found');
-
-      // Search relevant knowledge from database
-      let knowledgeContext = '';
-      try {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const searchResponse = await fetch(
-          `${supabaseUrl}/functions/v1/search-knowledge`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({ query: userMessage }),
-          }
-        );
-
-        const searchData = await searchResponse.json();
-        if (searchData.data && searchData.data.length > 0) {
-          knowledgeContext = '\n\nTài liệu tham khảo từ cơ sở dữ liệu:\n';
-          searchData.data.forEach((item: any) => {
-            knowledgeContext += `\nCâu hỏi: ${item.question}\nTrả lời: ${item.answer}\n`;
-          });
-        }
-      } catch (searchErr) {
-        console.warn('Knowledge search failed:', searchErr);
-      }
-
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const response = await fetch(
-        'https://api.groq.com/openai/v1/chat/completions',
+        `${supabaseUrl}/functions/v1/chat`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
-          body: JSON.stringify({
-            model: 'llama-3.1-8b-instant',
-            messages: [
-              {
-                role: 'system',
-                content: `
-Bạn là trợ lý AI chuyên về vấn đề mối quan hệ giữa lòng biết ơn và hành vi ủng hộ xã hội, trong đó bạn phân tích một khía cạnh quan trọng nhất của vấn đề chính là vai trò trung gian của ý nghĩa cuộc sống
-Hãy trả lời bằng tiếng Việt một cách thân thiện, dễ hiểu và hữu ích cho học sinh.
-
-Khi trả lời:
-- Với mỗi ý bạn có thể bôi đậm tiêu đề lên, không thêm gì ở 2 đầu
-- Ngôn ngữ thân thiện, gần gũi với học sinh
-- Trong file đã viết vừa đủ không có viết khác đi
-- Viết vừa đủ, không dài dòng
-- Dẫn dắt bằng ví dụ gần gũi
-- Có thể thêm icon dễ thương
-- Kết thúc bằng một câu hỏi mở
-- Phải trả lời vào đúng trọng tâm câu hỏi mà người hỏi đặt ra
-- Phải trả lời đúng thông tin dựa vào tài liệu sẵn có không lạc đề, tránh lệch hướng
-- Nếu có câu hỏi gần giống hoặc giống với câu hỏi trong tài liệu thì giữ nguyên để trả lời không thay đổi gì cả vì ngôn ngữ của bạn dễ gây sai lầm 
-- Có những câu nhắn từ người dùng sẽ khen bạn trả lời hay hoặc tuyệt vời bạn nên chỉ cảm ơn họ và hỏi rằng họ có còn thắc mắc gì không và bạn có thể gợi ý câu hỏi mở  nếu muốn.
-- Sau khi đọc câu hỏi hãy quét lại file thêm 3 lần nữa nếu thấy câu hỏi trùng hãy đưa ra câu trả lời có sẵn trong file
-- Viết tắt lần lượt là: Life Engagement Test (LET), Purpose in Life Test (PIL), Existential Meaning Scale (EMS/MEMS) Sources of Meaning Questionnaire, (SoMe), Meaning in Life Questionnaire (MLQ). Đây là kiến thức quan trọng bạn cần nhớ nếu người dùng không hỏi thì không nên đưa ra mà đưa ra câu hỏi mở khác
-
-${knowledgeContext ? `Hãy sử dụng thông tin sau để cải thiện câu trả lời của bạn:${knowledgeContext}` : ''}
-                `,
-              },
-              {
-                role: 'user',
-                content: userMessage,
-              },
-            ],
-            temperature: 0.7,
-          }),
+          body: JSON.stringify({ message: userMessage }),
         }
       );
 
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('Groq API Error:', data);
-        throw new Error(data.error?.message || 'API request failed');
+        console.error('Chat API Error:', data);
+        throw new Error(data.error || 'API request failed');
       }
 
       const aiResponse =
-        data.choices?.[0]?.message?.content ||
+        data.reply ||
         'Xin lỗi, mình chưa thể trả lời câu hỏi này.';
 
       setMessages((prev) => [...prev, { role: 'assistant', content: aiResponse }]);
