@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.21.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
@@ -31,7 +30,7 @@ Deno.serve(async (req: Request) => {
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "API key not configured" }),
+        JSON.stringify({ error: "GEMINI_API_KEY secret not set on server" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -46,34 +45,43 @@ Deno.serve(async (req: Request) => {
     let relevantContext = "";
 
     // Search tutor_knowledge for relevant Q&A
-    const { data: tutorKnowledge } = await supabase
-      .from("tutor_knowledge")
-      .select("topic, question, answer")
-      .or(`question.ilike.%${message}%,answer.ilike.%${message}%`)
-      .limit(5);
+    try {
+      const { data: tutorKnowledge, error: tkErr } = await supabase
+        .from("tutor_knowledge")
+        .select("topic, question, answer")
+        .or(`question.ilike.%${message}%,answer.ilike.%${message}%`)
+        .limit(5);
 
-    if (tutorKnowledge && tutorKnowledge.length > 0) {
-      relevantContext += "\n\nCÂU HỎI THƯỜNG GẶP (từ tài liệu):\n";
-      for (const tk of tutorKnowledge) {
-        relevantContext += `\nChủ đề: ${tk.topic}\nCâu hỏi: ${tk.question}\nTrả lời: ${tk.answer}\n`;
+      if (tkErr) throw tkErr;
+
+      if (tutorKnowledge && tutorKnowledge.length > 0) {
+        relevantContext += "\n\nCÂU HỎI THƯỜNG GẶP (từ tài liệu):\n";
+        for (const tk of tutorKnowledge) {
+          relevantContext += `\nChủ đề: ${tk.topic}\nCâu hỏi: ${tk.question}\nTrả lời: ${tk.answer}\n`;
+        }
       }
+    } catch (dbErr) {
+      console.warn("tutor_knowledge query failed:", dbErr);
     }
 
     // Also pull some theoretical background
-    const { data: knowledgeBase } = await supabase
-      .from("knowledge_base")
-      .select("title, content, category")
-      .limit(3);
+    try {
+      const { data: knowledgeBase, error: kbErr } = await supabase
+        .from("knowledge_base")
+        .select("title, content, category")
+        .limit(3);
 
-    if (knowledgeBase && knowledgeBase.length > 0) {
-      relevantContext += "\n\nCƠ SỞ LÝ THUYẾT:\n";
-      for (const kb of knowledgeBase) {
-        relevantContext += `\n### ${kb.title}\n${kb.content.substring(0, 2000)}...\n`;
+      if (kbErr) throw kbErr;
+
+      if (knowledgeBase && knowledgeBase.length > 0) {
+        relevantContext += "\n\nCƠ SỞ LÝ THUYẾT:\n";
+        for (const kb of knowledgeBase) {
+          relevantContext += `\n### ${kb.title}\n${kb.content.substring(0, 2000)}...\n`;
+        }
       }
+    } catch (dbErr) {
+      console.warn("knowledge_base query failed:", dbErr);
     }
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const systemPrompt = `Bạn là trợ lý AI chuyên về vấn đề mối quan hệ giữa lòng biết ơn và hành vi ủng hộ xã hội, trong đó bạn phân tích một khía cạnh quan trọng nhất của vấn đề chính là vai trò trung gian của ý nghĩa cuộc sống.
 
@@ -86,15 +94,14 @@ Nhiệm vụ của bạn:
 Khi trả lời:
 - Với mỗi ý bạn có thể bôi đậm tiêu đề lên, không thêm gì ở 2 đầu
 - Ngôn ngữ thân thiện, gần gũi với học sinh
-- Trong file đã viết vừa đủ không có viết khác đi
 - Viết vừa đủ, không dài dòng
 - Dẫn dắt bằng ví dụ gần gũi
 - Kết thúc bằng một câu hỏi mở
 - Phải trả lời vào đúng trọng tâm câu hỏi mà người hỏi đặt ra
 - Phải trả lời đúng thông tin dựa vào tài liệu sẵn có không lạc đề, tránh lệch hướng
 - Nếu có câu hỏi gần giống hoặc giống với câu hỏi trong tài liệu thì giữ nguyên để trả lời không thay đổi gì cả
-- Có những câu nhắn từ người dùng sẽ khen bạn trả lời hay hoặc tuyệt vời bạn nên chỉ cảm ơn họ và hỏi rằng họ có còn thắc mắc gì không
-- Viết tắt lần lượt là: Life Engagement Test (LET), Purpose in Life Test (PIL), Existential Meaning Scale (EMS/MEMS) Sources of Meaning Questionnaire (SoMe), Meaning in Life Questionnaire (MLQ). Đây là kiến thức quan trọng bạn cần nhớ nếu người dùng không hỏi thì không nên đưa ra
+- Có những câu nhắn từ người dùng sẽ khen bạn trả lời hay thì chỉ cảm ơn họ và hỏi rằng họ có còn thắc mắc gì không
+- Viết tắt: Life Engagement Test (LET), Purpose in Life Test (PIL), Existential Meaning Scale (EMS/MEMS), Sources of Meaning Questionnaire (SoMe), Meaning in Life Questionnaire (MLQ). Nếu người dùng không hỏi thì không nên đưa ra
 
 ${relevantContext}
 
@@ -102,9 +109,41 @@ Hãy trả lời câu hỏi sau dựa trên kiến thức trên và kinh nghiệ
 
     const fullPrompt = `${systemPrompt}\n\nCâu hỏi của học sinh: ${message}`;
 
-    const result = await model.generateContent(fullPrompt);
-    const response = await result.response;
-    const text = response.text();
+    // Call Gemini REST API directly (avoids SDK version issues)
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const geminiRes = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: fullPrompt }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+        },
+      }),
+    });
+
+    const geminiData = await geminiRes.json();
+
+    if (!geminiRes.ok) {
+      console.error("Gemini API error:", JSON.stringify(geminiData));
+      const errMsg = geminiData?.error?.message || `Gemini API returned ${geminiRes.status}`;
+      return new Response(
+        JSON.stringify({ error: errMsg }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const text =
+      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "Xin lỗi, mình chưa thể trả lời câu hỏi này.";
 
     return new Response(
       JSON.stringify({ reply: text }),
@@ -113,9 +152,10 @@ Hãy trả lời câu hỏi sau dựa trên kiến thức trên và kinh nghiệ
       }
     );
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Edge function error:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
     return new Response(
-      JSON.stringify({ error: "Có lỗi xảy ra. Vui lòng thử lại sau!" }),
+      JSON.stringify({ error: errMsg }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
