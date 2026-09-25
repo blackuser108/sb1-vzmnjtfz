@@ -1,19 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
-import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.24.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
-
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL") || "",
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
-);
-
-const genAI = new GoogleGenerativeAI(Deno.env.get("GOOGLE_API_KEY") || "");
 
 interface ScoringRequest {
   userId: string;
@@ -27,10 +19,22 @@ interface ScoringRequest {
   }>;
 }
 
-async function scoreResponse(question: string, responseText: string): Promise<number> {
-  if (!responseText || responseText.trim().length === 0) return 1;
+async function getOpenAiKey(supabase: ReturnType<typeof createClient>): Promise<string | null> {
+  let apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (apiKey) return apiKey;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const { data, error } = await supabase
+    .from("app_secrets")
+    .select("value")
+    .eq("key", "OPENAI_API_KEY")
+    .single();
+
+  if (error || !data) return null;
+  return data.value;
+}
+
+async function scoreResponse(question: string, responseText: string, openaiKey: string): Promise<number> {
+  if (!responseText || responseText.trim().length === 0) return 1;
 
   const scoringPrompt = `Bạn là AI chấm điểm khảo sát tâm lý/nhận thức cá nhân. Nhiệm vụ của bạn là đánh giá câu trả lời dựa trên thang 7 điểm, chia nhỏ 0,25, theo 4 tiêu chí chính:
 
@@ -66,9 +70,30 @@ Câu hỏi: ${question}
 Câu trả lời: ${responseText}`;
 
   try {
-    const result = await model.generateContent(scoringPrompt);
-    const output = result.response.text();
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${openaiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "Bạn là AI chấm điểm khảo sát tâm lý. Chỉ trả về điểm số theo định dạng yêu cầu." },
+          { role: "user", content: scoringPrompt },
+        ],
+        temperature: 0.3,
+      }),
+    });
 
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("OpenAI scoring error:", JSON.stringify(data));
+      return 3.5;
+    }
+
+    const output = data?.choices?.[0]?.message?.content || "";
     const match = output.match(/Tổng điểm:\s*([\d.]+)\/7/);
     if (match && match[1]) {
       const score = parseFloat(match[1]);
@@ -114,6 +139,19 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") || "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
+    );
+
+    const openaiKey = await getOpenAiKey(supabase);
+    if (!openaiKey) {
+      return new Response(
+        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     let gratitudeScore: number | null = null;
     let lifeMeaningScore: number | null = null;
     let prosocialBehavior: string | null = null;
@@ -123,7 +161,7 @@ Deno.serve(async (req: Request) => {
 
       for (const resp of responses) {
         if (resp.responseText && resp.responseText.trim()) {
-          const score = await scoreResponse(resp.questionText || '', resp.responseText);
+          const score = await scoreResponse(resp.questionText || '', resp.responseText, openaiKey);
           scores.push(score);
         }
       }

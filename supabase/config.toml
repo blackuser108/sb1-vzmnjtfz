@@ -1,2 +1,5 @@
 [functions.chat]
 verify_jwt = false
+
+[functions.score-daily-tasks]
+verify_jwt = true

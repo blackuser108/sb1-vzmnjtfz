@@ -27,20 +27,29 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "GEMINI_API_KEY secret not set on server" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+
+    // Fetch OpenAI API key from app_secrets table
+    let openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!openaiApiKey) {
+      const { data: secretRow, error: secretErr } = await supabase
+        .from("app_secrets")
+        .select("value")
+        .eq("key", "OPENAI_API_KEY")
+        .single();
+      if (secretErr || !secretRow) {
+        return new Response(
+          JSON.stringify({ error: "OpenAI API key not configured" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      openaiApiKey = secretRow.value;
+    }
 
     let relevantContext = "";
 
@@ -107,31 +116,28 @@ ${relevantContext}
 
 Hãy trả lời câu hỏi sau dựa trên kiến thức trên và kinh nghiệm của bạn về tâm lý học:`;
 
-    const fullPrompt = `${systemPrompt}\n\nCâu hỏi của học sinh: ${message}`;
-
-    // Call Gemini REST API directly (avoids SDK version issues)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-    const geminiRes = await fetch(geminiUrl, {
+    // Call OpenAI REST API
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${openaiApiKey}`,
+      },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: fullPrompt }],
-          },
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message },
         ],
-        generationConfig: {
-          temperature: 0.7,
-        },
+        temperature: 0.7,
       }),
     });
 
-    const geminiData = await geminiRes.json();
+    const openaiData = await openaiRes.json();
 
-    if (!geminiRes.ok) {
-      console.error("Gemini API error:", JSON.stringify(geminiData));
-      const errMsg = geminiData?.error?.message || `Gemini API returned ${geminiRes.status}`;
+    if (!openaiRes.ok) {
+      console.error("OpenAI API error:", JSON.stringify(openaiData));
+      const errMsg = openaiData?.error?.message || `OpenAI API returned ${openaiRes.status}`;
       return new Response(
         JSON.stringify({ error: errMsg }),
         {
@@ -142,7 +148,7 @@ Hãy trả lời câu hỏi sau dựa trên kiến thức trên và kinh nghiệ
     }
 
     const text =
-      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      openaiData?.choices?.[0]?.message?.content ||
       "Xin lỗi, mình chưa thể trả lời câu hỏi này.";
 
     return new Response(
