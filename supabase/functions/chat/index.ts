@@ -7,14 +7,14 @@ const corsHeaders = {
 };
 
 async function getApiKey(supabase: ReturnType<typeof createClient>): Promise<string | null> {
-  let apiKey = Deno.env.get("DEEPSEEK_API_KEY");
+  const apiKey = Deno.env.get("HIVE_API_KEY");
   if (apiKey) return apiKey;
 
   const { data, error } = await supabase
     .from("app_secrets")
     .select("value")
-    .eq("key", "DEEPSEEK_API_KEY")
-    .single();
+    .eq("key", "HIVE_API_KEY")
+    .maybeSingle();
 
   if (error || !data) return null;
   return data.value;
@@ -48,7 +48,7 @@ Deno.serve(async (req: Request) => {
     const apiKey = await getApiKey(supabase);
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "Deepseek API key not configured" }),
+        JSON.stringify({ error: "Hive API key not configured" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -121,15 +121,15 @@ ${relevantContext}
 
 Hãy trả lời câu hỏi sau dựa trên kiến thức trên và kinh nghiệm của bạn về tâm lý học:`;
 
-    // Call Deepseek API (OpenAI-compatible)
-    const aiRes = await fetch("https://api.deepseek.com/chat/completions", {
+    // Call Hive V3 API (OpenAI-compatible)
+    const aiRes = await fetch("https://api.thehive.ai/api/v3/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "sf1::v3",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: message },
@@ -141,8 +141,8 @@ Hãy trả lời câu hỏi sau dựa trên kiến thức trên và kinh nghiệ
     const aiData = await aiRes.json();
 
     if (!aiRes.ok) {
-      console.error("Deepseek API error:", JSON.stringify(aiData));
-      const errMsg = aiData?.error?.message || `Deepseek API returned ${aiRes.status}`;
+      console.error("Hive API error:", JSON.stringify(aiData));
+      const errMsg = aiData?.error?.message || `Hive API returned ${aiRes.status}`;
       return new Response(
         JSON.stringify({ error: errMsg }),
         {

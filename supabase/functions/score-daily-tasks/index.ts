@@ -20,14 +20,14 @@ interface ScoringRequest {
 }
 
 async function getApiKey(supabase: ReturnType<typeof createClient>): Promise<string | null> {
-  let apiKey = Deno.env.get("DEEPSEEK_API_KEY");
+  const apiKey = Deno.env.get("HIVE_API_KEY");
   if (apiKey) return apiKey;
 
   const { data, error } = await supabase
     .from("app_secrets")
     .select("value")
-    .eq("key", "DEEPSEEK_API_KEY")
-    .single();
+    .eq("key", "HIVE_API_KEY")
+    .maybeSingle();
 
   if (error || !data) return null;
   return data.value;
@@ -70,14 +70,14 @@ Câu hỏi: ${question}
 Câu trả lời: ${responseText}`;
 
   try {
-    const res = await fetch("https://api.deepseek.com/chat/completions", {
+    const res = await fetch("https://api.thehive.ai/api/v3/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "sf1::v3",
         messages: [
           { role: "system", content: "Bạn là AI chấm điểm khảo sát tâm lý. Chỉ trả về điểm số theo định dạng yêu cầu." },
           { role: "user", content: scoringPrompt },
@@ -89,7 +89,7 @@ Câu trả lời: ${responseText}`;
     const data = await res.json();
 
     if (!res.ok) {
-      console.error("Deepseek scoring error:", JSON.stringify(data));
+      console.error("Hive scoring error:", JSON.stringify(data));
       return 3.5;
     }
 
@@ -147,7 +147,7 @@ Deno.serve(async (req: Request) => {
     const apiKey = await getApiKey(supabase);
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: 'Deepseek API key not configured' }),
+        JSON.stringify({ error: 'Hive API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
