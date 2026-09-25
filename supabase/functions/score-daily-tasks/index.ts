@@ -19,21 +19,21 @@ interface ScoringRequest {
   }>;
 }
 
-async function getOpenAiKey(supabase: ReturnType<typeof createClient>): Promise<string | null> {
-  let apiKey = Deno.env.get("OPENAI_API_KEY");
+async function getApiKey(supabase: ReturnType<typeof createClient>): Promise<string | null> {
+  let apiKey = Deno.env.get("DEEPSEEK_API_KEY");
   if (apiKey) return apiKey;
 
   const { data, error } = await supabase
     .from("app_secrets")
     .select("value")
-    .eq("key", "OPENAI_API_KEY")
+    .eq("key", "DEEPSEEK_API_KEY")
     .single();
 
   if (error || !data) return null;
   return data.value;
 }
 
-async function scoreResponse(question: string, responseText: string, openaiKey: string): Promise<number> {
+async function scoreResponse(question: string, responseText: string, apiKey: string): Promise<number> {
   if (!responseText || responseText.trim().length === 0) return 1;
 
   const scoringPrompt = `Bạn là AI chấm điểm khảo sát tâm lý/nhận thức cá nhân. Nhiệm vụ của bạn là đánh giá câu trả lời dựa trên thang 7 điểm, chia nhỏ 0,25, theo 4 tiêu chí chính:
@@ -70,14 +70,14 @@ Câu hỏi: ${question}
 Câu trả lời: ${responseText}`;
 
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${openaiKey}`,
+        "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "deepseek-chat",
         messages: [
           { role: "system", content: "Bạn là AI chấm điểm khảo sát tâm lý. Chỉ trả về điểm số theo định dạng yêu cầu." },
           { role: "user", content: scoringPrompt },
@@ -89,7 +89,7 @@ Câu trả lời: ${responseText}`;
     const data = await res.json();
 
     if (!res.ok) {
-      console.error("OpenAI scoring error:", JSON.stringify(data));
+      console.error("Deepseek scoring error:", JSON.stringify(data));
       return 3.5;
     }
 
@@ -144,10 +144,10 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
     );
 
-    const openaiKey = await getOpenAiKey(supabase);
-    if (!openaiKey) {
+    const apiKey = await getApiKey(supabase);
+    if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        JSON.stringify({ error: 'Deepseek API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -161,7 +161,7 @@ Deno.serve(async (req: Request) => {
 
       for (const resp of responses) {
         if (resp.responseText && resp.responseText.trim()) {
-          const score = await scoreResponse(resp.questionText || '', resp.responseText, openaiKey);
+          const score = await scoreResponse(resp.questionText || '', resp.responseText, apiKey);
           scores.push(score);
         }
       }

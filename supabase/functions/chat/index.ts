@@ -6,6 +6,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+async function getApiKey(supabase: ReturnType<typeof createClient>): Promise<string | null> {
+  let apiKey = Deno.env.get("DEEPSEEK_API_KEY");
+  if (apiKey) return apiKey;
+
+  const { data, error } = await supabase
+    .from("app_secrets")
+    .select("value")
+    .eq("key", "DEEPSEEK_API_KEY")
+    .single();
+
+  if (error || !data) return null;
+  return data.value;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -31,24 +45,15 @@ Deno.serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
-    // Fetch OpenAI API key from app_secrets table
-    let openaiApiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!openaiApiKey) {
-      const { data: secretRow, error: secretErr } = await supabase
-        .from("app_secrets")
-        .select("value")
-        .eq("key", "OPENAI_API_KEY")
-        .single();
-      if (secretErr || !secretRow) {
-        return new Response(
-          JSON.stringify({ error: "OpenAI API key not configured" }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-      openaiApiKey = secretRow.value;
+    const apiKey = await getApiKey(supabase);
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: "Deepseek API key not configured" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     let relevantContext = "";
@@ -116,15 +121,15 @@ ${relevantContext}
 
 Hãy trả lời câu hỏi sau dựa trên kiến thức trên và kinh nghiệm của bạn về tâm lý học:`;
 
-    // Call OpenAI REST API
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Call Deepseek API (OpenAI-compatible)
+    const aiRes = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${openaiApiKey}`,
+        "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "deepseek-chat",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: message },
@@ -133,11 +138,11 @@ Hãy trả lời câu hỏi sau dựa trên kiến thức trên và kinh nghiệ
       }),
     });
 
-    const openaiData = await openaiRes.json();
+    const aiData = await aiRes.json();
 
-    if (!openaiRes.ok) {
-      console.error("OpenAI API error:", JSON.stringify(openaiData));
-      const errMsg = openaiData?.error?.message || `OpenAI API returned ${openaiRes.status}`;
+    if (!aiRes.ok) {
+      console.error("Deepseek API error:", JSON.stringify(aiData));
+      const errMsg = aiData?.error?.message || `Deepseek API returned ${aiRes.status}`;
       return new Response(
         JSON.stringify({ error: errMsg }),
         {
@@ -148,7 +153,7 @@ Hãy trả lời câu hỏi sau dựa trên kiến thức trên và kinh nghiệ
     }
 
     const text =
-      openaiData?.choices?.[0]?.message?.content ||
+      aiData?.choices?.[0]?.message?.content ||
       "Xin lỗi, mình chưa thể trả lời câu hỏi này.";
 
     return new Response(
